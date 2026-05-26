@@ -51,41 +51,37 @@ const heroFadeUp: Variants = {
 };
 
 const revealUp: Variants = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0.62, y: 18 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.72, ease: premiumEase },
+    transition: { duration: 0.58, ease: premiumEase },
   },
 };
 
 const revealMask: Variants = {
   hidden: {
-    opacity: 0,
-    y: 30,
-    clipPath: "inset(0 0 32% 0)",
+    opacity: 0.72,
+    y: 18,
   },
   show: {
     opacity: 1,
     y: 0,
-    clipPath: "inset(0 0 0% 0)",
-    transition: { duration: 0.9, ease: premiumEase },
+    transition: { duration: 0.62, ease: premiumEase },
   },
 };
 
 const revealImage: Variants = {
   hidden: {
-    opacity: 0,
-    y: 36,
-    scale: 0.985,
-    clipPath: "inset(8% 0 8% 0)",
+    opacity: 0.82,
+    y: 22,
+    scale: 0.995,
   },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    clipPath: "inset(0% 0 0% 0)",
-    transition: { duration: 0.95, ease: premiumEase },
+    transition: { duration: 0.68, ease: premiumEase },
   },
 };
 
@@ -97,12 +93,11 @@ const revealStagger: Variants = {
 };
 
 const rowReveal: Variants = {
-  hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
+  hidden: { opacity: 0.7, y: 16 },
   show: {
     opacity: 1,
     y: 0,
-    filter: "blur(0px)",
-    transition: { duration: 0.66, ease: premiumEase },
+    transition: { duration: 0.54, ease: premiumEase },
   },
 };
 
@@ -240,9 +235,7 @@ function App() {
               }}
             >
               <div className="hero__copy">
-                <motion.h1 className="text-reveal" variants={revealMask}>
-                  Thera Research
-                </motion.h1>
+                <h1 className="hero-title text-reveal">Thera Research</h1>
                 <motion.p className="hero__lead" variants={heroFadeUp}>
                   {content.hero.lead}
                 </motion.p>
