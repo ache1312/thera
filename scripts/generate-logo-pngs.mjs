@@ -526,6 +526,10 @@ const variants = [
   },
 ];
 
+const activeVariants = variants.filter(
+  (variant) => variant.id === "pure-wordmark",
+);
+
 function convert(output, drawArgs) {
   execFileSync(
     "convert",
@@ -557,7 +561,7 @@ function convert(output, drawArgs) {
 rmSync(outputDir, { recursive: true, force: true });
 mkdirSync(outputDir, { recursive: true });
 
-for (const variant of variants) {
+for (const variant of activeVariants) {
   for (const tone of ["header", "footer"]) {
     const output = resolve(outputDir, `${variant.id}-${tone}.png`);
     convert(
@@ -570,4 +574,6 @@ for (const variant of variants) {
   }
 }
 
-console.log(`Generated ${variants.length * 2} logo PNG files in ${outputDir}`);
+console.log(
+  `Generated ${activeVariants.length * 2} logo PNG files in ${outputDir}`,
+);

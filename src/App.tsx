@@ -1,13 +1,11 @@
 import type {
   ChangeEvent,
   CSSProperties,
-  Dispatch,
   FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   ReactNode,
   RefObject,
-  SetStateAction,
 } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -25,20 +23,21 @@ import {
   Check,
   ChevronRight,
   Mail,
+  MapPin,
   Menu,
+  Phone,
   Send,
   X,
 } from "lucide-react";
 import {
-  capabilities,
   clinicalIntelligenceImages,
-  heroMetrics,
-  monitoringSignals,
-  navItems,
-  operatingSignals,
-  proofPoints,
-  workflowSteps,
+  languageOptions,
+  siteContent,
+  type Language,
+  type SiteContent,
 } from "./content";
+
+const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path}`;
 
 const heroFadeUp = {
   hidden: { opacity: 0, y: 22 },
@@ -50,182 +49,50 @@ const revealUp = {
   show: { opacity: 1, y: 0 },
 };
 
-const logoOptions = [
-  {
-    id: "nexus-sans",
-    name: "Nexus Sans",
-    description: "Clean network mark with a confident modern wordmark.",
-    headerSrc: "/assets/logos/nexus-sans-header.png",
-    footerSrc: "/assets/logos/nexus-sans-footer.png",
-  },
-  {
-    id: "aperture-serif",
-    name: "Aperture Serif",
-    description: "Boutique serif direction with an editorial research feel.",
-    headerSrc: "/assets/logos/aperture-serif-header.png",
-    footerSrc: "/assets/logos/aperture-serif-footer.png",
-  },
-  {
-    id: "axis-caps",
-    name: "Axis Caps",
-    description: "A strong uppercase system mark, sharp and institutional.",
-    headerSrc: "/assets/logos/axis-caps-header.png",
-    footerSrc: "/assets/logos/axis-caps-footer.png",
-  },
-  {
-    id: "monogram-cut",
-    name: "Monogram Cut",
-    description: "Compact TR mark with a surgical diagonal cut.",
-    headerSrc: "/assets/logos/monogram-cut-header.png",
-    footerSrc: "/assets/logos/monogram-cut-footer.png",
-  },
-  {
-    id: "halo-wordmark",
-    name: "Halo Wordmark",
-    description: "Minimal orbital symbol with a refined sans wordmark.",
-    headerSrc: "/assets/logos/halo-wordmark-header.png",
-    footerSrc: "/assets/logos/halo-wordmark-footer.png",
-  },
-  {
-    id: "helix-line",
-    name: "Helix Line",
-    description: "Biotech-inspired without becoming literal or clinical.",
-    headerSrc: "/assets/logos/helix-line-header.png",
-    footerSrc: "/assets/logos/helix-line-footer.png",
-  },
-  {
-    id: "substrate-grid",
-    name: "Substrate Grid",
-    description: "Modern matrix mark for study operations and data quality.",
-    headerSrc: "/assets/logos/substrate-grid-header.png",
-    footerSrc: "/assets/logos/substrate-grid-footer.png",
-  },
-  {
-    id: "signature-serif",
-    name: "Signature Serif",
-    description: "Premium mixed-type wordmark with a quiet underline.",
-    headerSrc: "/assets/logos/signature-serif-header.png",
-    footerSrc: "/assets/logos/signature-serif-footer.png",
-  },
-  {
-    id: "trace-mark",
-    name: "Trace Mark",
-    description: "Minimal signal line, more restrained than medical cliché.",
-    headerSrc: "/assets/logos/trace-mark-header.png",
-    footerSrc: "/assets/logos/trace-mark-footer.png",
-  },
-  {
-    id: "capsule-lab",
-    name: "Capsule Lab",
-    description: "A clean capsule symbol with a premium clinical edge.",
-    headerSrc: "/assets/logos/capsule-lab-header.png",
-    footerSrc: "/assets/logos/capsule-lab-footer.png",
-  },
-  {
-    id: "meridian-cross",
-    name: "Meridian Cross",
-    description: "Precision mark based on alignment, not decoration.",
-    headerSrc: "/assets/logos/meridian-cross-header.png",
-    footerSrc: "/assets/logos/meridian-cross-footer.png",
-  },
-  {
-    id: "prism-delta",
-    name: "Prism Delta",
-    description: "Sharp triangular direction for a more tech-forward CRO.",
-    headerSrc: "/assets/logos/prism-delta-header.png",
-    footerSrc: "/assets/logos/prism-delta-footer.png",
-  },
-  {
-    id: "registry-brackets",
-    name: "Registry Brackets",
-    description: "A premium compliance mark with editorial framing.",
-    headerSrc: "/assets/logos/registry-brackets-header.png",
-    footerSrc: "/assets/logos/registry-brackets-footer.png",
-  },
-  {
-    id: "orbit-tr",
-    name: "Orbit TR",
-    description: "Balanced monogram with a controlled orbital gesture.",
-    headerSrc: "/assets/logos/orbit-tr-header.png",
-    footerSrc: "/assets/logos/orbit-tr-footer.png",
-  },
-  {
-    id: "pure-wordmark",
-    name: "Pure Wordmark",
-    description: "No symbol, just a cleaner premium type direction.",
-    headerSrc: "/assets/logos/pure-wordmark-header.png",
-    footerSrc: "/assets/logos/pure-wordmark-footer.png",
-  },
-] as const;
-
-type LogoOptionId = (typeof logoOptions)[number]["id"];
-
-type LogoDraft = {
-  option: LogoOptionId;
-  scale: number;
+const pureWordmarkLogo = {
+  headerSrc: assetPath("assets/logos/pure-wordmark-header.png"),
+  footerSrc: assetPath("assets/logos/pure-wordmark-footer.png"),
 };
 
-const logoStorageKey = "thera-logo-png-draft-v2";
+const logoScale = 1.02;
+const linkedInUrl =
+  "https://www.linkedin.com/company/theraresearch-ltda?trk=extra_biz_viewers_viewed";
+const patientFormAction =
+  "https://docs.google.com/forms/d/e/1FAIpQLSeQtFC6Eptj0kx4aBSH5RakAoFBMOZG3EXMR3EJzH5v7l3Cvw/formResponse";
+const languageStorageKey = "thera-language";
 
-const defaultLogoDraft: LogoDraft = {
-  option: "nexus-sans",
-  scale: 100,
-};
+type PatientFormField =
+  | "firstName"
+  | "lastName"
+  | "phone"
+  | "city"
+  | "diagnosed"
+  | "diagnosis"
+  | "consent";
 
-function isLogoOptionId(value: unknown): value is LogoOptionId {
-  return logoOptions.some((option) => option.id === value);
+function isLanguage(value: unknown): value is Language {
+  return value === "en" || value === "es";
 }
 
-function normalizeNumber(
-  value: unknown,
-  fallback: number,
-  min: number,
-  max: number,
-) {
-  const numberValue = Number(value);
-
-  if (!Number.isFinite(numberValue)) {
-    return fallback;
-  }
-
-  return Math.min(max, Math.max(min, numberValue));
-}
-
-function normalizeLogoDraft(value: Partial<LogoDraft>): LogoDraft {
-  return {
-    option: isLogoOptionId(value.option)
-      ? value.option
-      : defaultLogoDraft.option,
-    scale: normalizeNumber(value.scale, defaultLogoDraft.scale, 86, 118),
-  };
-}
-
-function getLogoOption(id: LogoOptionId) {
-  return logoOptions.find((option) => option.id === id) ?? logoOptions[0];
-}
-
-function getInitialLogoDraft() {
+function getInitialLanguage(): Language {
   if (typeof window === "undefined") {
-    return defaultLogoDraft;
+    return "en";
   }
 
-  try {
-    const storedDraft = window.localStorage.getItem(logoStorageKey);
-    if (!storedDraft) {
-      return defaultLogoDraft;
-    }
-
-    return normalizeLogoDraft(JSON.parse(storedDraft) as Partial<LogoDraft>);
-  } catch {
-    return defaultLogoDraft;
+  const storedLanguage = window.localStorage.getItem(languageStorageKey);
+  if (isLanguage(storedLanguage)) {
+    return storedLanguage;
   }
+
+  return window.navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
 }
 
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openService, setOpenService] = useState(0);
-  const [logoDraft, setLogoDraft] = useState<LogoDraft>(getInitialLogoDraft);
+  const [language, setLanguage] = useState<Language>(getInitialLanguage);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const content = siteContent[language];
   const activeImages = clinicalIntelligenceImages;
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
@@ -234,6 +101,9 @@ function App() {
   const heroImageStyle = shouldReduceMotion
     ? { scale: 1, opacity: 1 }
     : { scale: heroScale, opacity: heroOpacity };
+  const patientsImageStyle = {
+    "--patients-bg": `url("${activeImages.patients}")`,
+  } as CSSProperties;
 
   useEffect(() => {
     const originalOverflow = document.body.style.overflow;
@@ -245,329 +115,312 @@ function App() {
   }, [menuOpen]);
 
   useEffect(() => {
-    window.localStorage.setItem(logoStorageKey, JSON.stringify(logoDraft));
-  }, [logoDraft]);
+    document.documentElement.lang = language;
+    window.localStorage.setItem(languageStorageKey, language);
+  }, [language]);
 
   return (
     <MotionConfig reducedMotion="user">
       <div className="site-shell theme-intelligence">
         <a className="skip-link" href="#main-content">
-          Skip to main content
+          {content.meta.skipLink}
         </a>
         <Header
           menuOpen={menuOpen}
           menuButtonRef={menuButtonRef}
           setMenuOpen={setMenuOpen}
-          logoDraft={logoDraft}
+          language={language}
+          setLanguage={setLanguage}
+          content={content}
         />
         <main id="main-content" tabIndex={-1}>
-        <section className="hero" id="home" aria-label="Thera Research">
-          <motion.img
-            className="hero__image"
-            src={activeImages.hero}
-            alt=""
-            aria-hidden="true"
-            style={heroImageStyle}
-          />
-          <div className="hero__shade" />
-          <div className="hero__grid" aria-hidden="true" />
-          <motion.div
-            className="hero__content"
-            initial="hidden"
-            animate="show"
-            variants={{
-              hidden: {},
-              show: { transition: { staggerChildren: 0.11, delayChildren: 0.08 } },
-            }}
-          >
-            <div className="hero__copy">
-              <motion.p className="eyebrow" variants={heroFadeUp}>
-                Clinical Research Organization / Chile
-              </motion.p>
-              <motion.h1 variants={heroFadeUp}>Thera Research</motion.h1>
-              <motion.p className="hero__lead" variants={heroFadeUp}>
-                A Clinical Research Organization based in Chile, specialized in
-                clinical trials management and full Phase I-IV study support for
-                pharmaceutical, biotechnology, generic drug, OTC/consumer
-                healthcare, and medical device companies.
-              </motion.p>
-              <motion.div className="hero__actions" variants={heroFadeUp}>
-                <MagneticButton href="#contact" variant="button--primary">
-                  Start a study <ArrowRight size={18} aria-hidden="true" />
-                </MagneticButton>
-                <MagneticButton href="#patients" variant="button--ghost">
-                  Patient recruitment
-                </MagneticButton>
-                <MagneticButton href="#logo-lab" variant="button--ghost">
-                  Logo options
-                </MagneticButton>
-              </motion.div>
-            </div>
-            <StudyOpsPanel />
-          </motion.div>
-          <motion.dl
-            className="hero__metrics"
-            variants={heroFadeUp}
-            aria-label="Thera Research operating metrics"
-          >
-            {heroMetrics.map((metric) => (
-              <div className="metric" key={metric.label}>
-                <dt>{metric.label}</dt>
-                <dd>{metric.value}</dd>
-              </div>
-            ))}
-          </motion.dl>
-        </section>
-
-        <LogoLab logoDraft={logoDraft} setLogoDraft={setLogoDraft} />
-
-        <section className="intro section" id="company">
-          <motion.div
-            className="intro__content"
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true, amount: 0.35 }}
-            variants={{
-              hidden: {},
-              show: { transition: { staggerChildren: 0.1 } },
-            }}
-          >
-            <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
-              Our company
-            </motion.p>
-            <motion.h2 variants={revealUp}>
-              Clinical trial services for medical research studies in all diseases.
-            </motion.h2>
-            <motion.p variants={revealUp}>
-              Thera Research provides flexibility in response to client
-              outsourcing demands and assists throughout the clinical trial
-              process, from site identification and strategic feasibility to
-              activation, patient recruitment follow-up, site closure, and
-              reporting.
-            </motion.p>
-          </motion.div>
-          <motion.div
-            className="intro__visual"
-            initial={{ opacity: 1, y: 22 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            viewport={{ once: true, amount: 0.35 }}
-          >
-            <img
-              src={activeImages.lab}
-              alt="Regulatory dossier and clinical startup materials on a research desk"
+          <section className="hero" id="home" aria-label={content.hero.aria}>
+            <motion.img
+              className="hero__image"
+              src={activeImages.hero}
+              alt=""
+              aria-hidden="true"
+              style={heroImageStyle}
             />
-            <div className="signal-strip" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-              <span />
-            </div>
-          </motion.div>
-        </section>
+            <div className="hero__shade" />
+            <div className="hero__grid" aria-hidden="true" />
+            <motion.div
+              className="hero__content"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: {},
+                show: {
+                  transition: { staggerChildren: 0.11, delayChildren: 0.08 },
+                },
+              }}
+            >
+              <div className="hero__copy">
+                <motion.h1 variants={heroFadeUp}>Thera Research</motion.h1>
+                <motion.p className="hero__lead" variants={heroFadeUp}>
+                  {content.hero.lead}
+                </motion.p>
+                <motion.div className="hero__actions" variants={heroFadeUp}>
+                  <MagneticButton href="#contact" variant="button--primary">
+                    {content.hero.primaryCta}{" "}
+                    <ArrowRight size={18} aria-hidden="true" />
+                  </MagneticButton>
+                  <MagneticButton
+                    href="#patient-registration"
+                    variant="button--ghost"
+                  >
+                    {content.hero.secondaryCta}
+                  </MagneticButton>
+                </motion.div>
+              </div>
+              <StudyOpsPanel content={content} />
+            </motion.div>
+          </section>
 
-        <section className="section services" id="services">
-          <div className="section-heading section-heading--split">
-            <div>
-              <p className="eyebrow eyebrow--dark">Services</p>
-              <h2>Support across the clinical trial process.</h2>
-            </div>
-            <p>
-              The service model covers site identification, feasibility, site
-              selection, strategic partnerships, investigator qualification,
-              activation, recruitment follow-up, and site closure.
-            </p>
-          </div>
-          <div className="capability-list">
-            {capabilities.map((item, index) => {
-              const Icon = item.icon;
-              const serviceId = `service-${item.eyebrow}`;
-              const isOpen = openService === index;
+          <section className="intro section" id="company">
+            <motion.div
+              className="intro__content"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.35 }}
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.1 } },
+              }}
+            >
+              <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+                {content.intro.eyebrow}
+              </motion.p>
+              <motion.h2 variants={revealUp}>{content.intro.heading}</motion.h2>
+              <motion.p variants={revealUp}>{content.intro.copy}</motion.p>
+            </motion.div>
+            <motion.div
+              className="intro__visual"
+              initial={{ opacity: 1, y: 22 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, amount: 0.35 }}
+            >
+              <img src={activeImages.lab} alt={content.intro.imageAlt} />
+              <div className="signal-strip" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+                <span />
+              </div>
+            </motion.div>
+          </section>
 
-              return (
-                <motion.article
-                  className={`capability-row ${isOpen ? "is-open" : ""}`}
-                  key={item.title}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.48,
-                    delay: index * 0.04,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  viewport={{ once: true, amount: 0.25 }}
-                >
-                  <div className="capability-row__index">{item.eyebrow}</div>
-                  <div className="capability-row__icon">
-                    <Icon size={23} aria-hidden="true" />
-                  </div>
-                  <div className="capability-row__main">
-                    <h3 className="capability-row__desktop-title">
-                      {item.title}
-                    </h3>
-                    <button
-                      className="capability-row__mobile-trigger"
-                      type="button"
-                      aria-expanded={isOpen}
-                      aria-controls={`${serviceId}-details ${serviceId}-meta`}
-                      onClick={() =>
-                        setOpenService((current) =>
-                          current === index ? -1 : index,
-                        )
-                      }
-                    >
-                      <span className="capability-row__trigger-copy">
-                        <span>{item.title}</span>
-                        <span className="capability-row__risk-pill">
-                          {item.risk}
+          <section className="section services" id="services">
+            <div className="section-heading section-heading--split">
+              <div>
+                <p className="eyebrow eyebrow--dark">
+                  {content.services.eyebrow}
+                </p>
+                <h2>{content.services.heading}</h2>
+              </div>
+              <p>{content.services.copy}</p>
+            </div>
+            <div className="capability-list">
+              {content.capabilities.map((item, index) => {
+                const Icon = item.icon;
+                const serviceId = `service-${item.eyebrow}`;
+                const isOpen = openService === index;
+
+                return (
+                  <motion.article
+                    className={`capability-row ${isOpen ? "is-open" : ""}`}
+                    key={item.title}
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.48,
+                      delay: index * 0.04,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    viewport={{ once: true, amount: 0.25 }}
+                  >
+                    <div className="capability-row__index">{item.eyebrow}</div>
+                    <div className="capability-row__icon">
+                      <Icon size={23} aria-hidden="true" />
+                    </div>
+                    <div className="capability-row__main">
+                      <h3 className="capability-row__desktop-title">
+                        {item.title}
+                      </h3>
+                      <button
+                        className="capability-row__mobile-trigger"
+                        type="button"
+                        aria-expanded={isOpen}
+                        aria-controls={`${serviceId}-details ${serviceId}-meta`}
+                        onClick={() =>
+                          setOpenService((current) =>
+                            current === index ? -1 : index,
+                          )
+                        }
+                      >
+                        <span className="capability-row__trigger-copy">
+                          <span>{item.title}</span>
+                          <span className="capability-row__risk-pill">
+                            {item.risk}
+                          </span>
                         </span>
-                      </span>
-                      <ChevronRight
-                        className="capability-row__mobile-chevron"
-                        size={18}
-                        aria-hidden="true"
-                      />
-                    </button>
-                    <div
-                      className="capability-row__details"
-                      id={`${serviceId}-details`}
+                        <ChevronRight
+                          className="capability-row__mobile-chevron"
+                          size={18}
+                          aria-hidden="true"
+                        />
+                      </button>
+                      <div
+                        className="capability-row__details"
+                        id={`${serviceId}-details`}
+                      >
+                        <p>{item.copy}</p>
+                      </div>
+                    </div>
+                    <dl
+                      className="capability-row__meta"
+                      id={`${serviceId}-meta`}
                     >
+                      <div>
+                        <dt>{content.services.deliverableLabel}</dt>
+                        <dd>{item.deliverable}</dd>
+                      </div>
+                      <div>
+                        <dt>{content.services.riskLabel}</dt>
+                        <dd>{item.risk}</dd>
+                      </div>
+                    </dl>
+                    <ChevronRight
+                      className="capability-row__desktop-chevron"
+                      size={22}
+                      aria-hidden="true"
+                    />
+                  </motion.article>
+                );
+              })}
+            </div>
+          </section>
+
+          <WorkflowSection content={content.workflow} />
+
+          <section className="monitoring section" id="monitoring">
+            <div className="monitoring__copy">
+              <p className="eyebrow eyebrow--dark">
+                {content.monitoring.eyebrow}
+              </p>
+              <h2>{content.monitoring.heading}</h2>
+              <p>{content.monitoring.copy}</p>
+              <ul className="check-list">
+                {content.monitoring.signals.map((item) => (
+                  <li key={item}>
+                    <Check size={18} aria-hidden="true" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <motion.div
+              className="monitoring__panel"
+              initial={{ opacity: 1, y: 28 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
+              viewport={{ once: true, amount: 0.35 }}
+            >
+              <img
+                src={activeImages.monitoring}
+                alt={content.monitoring.imageAlt}
+              />
+              <div className="panel-overlay">
+                <span>{content.monitoring.overlayLabel}</span>
+                <strong>{content.monitoring.overlayTitle}</strong>
+                <small>{content.monitoring.overlayCopy}</small>
+              </div>
+            </motion.div>
+          </section>
+
+          <section className="proof section" id="positioning">
+            <div className="section-heading section-heading--wide">
+              <p className="eyebrow eyebrow--dark">{content.proof.eyebrow}</p>
+              <h2>{content.proof.heading}</h2>
+              <p className="section-heading__support">
+                {content.proof.support}
+              </p>
+            </div>
+            <div className="proof-grid">
+              {content.proof.points.map((item, index) => {
+                const Icon = item.icon;
+                const itemNumber = String(index + 1).padStart(2, "0");
+
+                return (
+                  <motion.article
+                    key={item.title}
+                    className={
+                      index === 0 ? "proof-item proof-item--lead" : "proof-item"
+                    }
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.46,
+                      delay: index * 0.045,
+                      ease: [0.16, 1, 0.3, 1],
+                    }}
+                    viewport={{ once: true, amount: 0.25 }}
+                  >
+                    <span className="proof-item__marker">{itemNumber}</span>
+                    <div className="proof-item__icon">
+                      <Icon size={22} aria-hidden="true" />
+                    </div>
+                    <div className="proof-item__body">
+                      <span className="proof-item__label">
+                        {index === 0
+                          ? content.proof.primaryLabel
+                          : content.proof.supportingLabel}
+                      </span>
+                      <h3>{item.title}</h3>
                       <p>{item.copy}</p>
                     </div>
-                  </div>
-                  <dl className="capability-row__meta" id={`${serviceId}-meta`}>
-                    <div>
-                      <dt>Deliverable</dt>
-                      <dd>{item.deliverable}</dd>
-                    </div>
-                    <div>
-                      <dt>Risk controlled</dt>
-                      <dd>{item.risk}</dd>
-                    </div>
-                  </dl>
-                  <ChevronRight
-                    className="capability-row__desktop-chevron"
-                    size={22}
-                    aria-hidden="true"
-                  />
-                </motion.article>
-              );
-            })}
-          </div>
-        </section>
-
-        <WorkflowSection />
-
-        <section className="monitoring section" id="monitoring">
-          <div className="monitoring__copy">
-            <p className="eyebrow eyebrow--dark">Clinical trial monitoring</p>
-            <h2>CRA oversight for data quality and site interaction.</h2>
-            <p>
-              Skilled and highly trained CRAs conduct on-site monitoring visits
-              throughout the study, overseeing data collection, reviewing source
-              documentation and case report forms, ensuring regulatory
-              compliance, and resolving data queries requested by clients.
-            </p>
-            <ul className="check-list">
-              {monitoringSignals.map((item) => (
-                <li key={item}>
-                  <Check size={18} aria-hidden="true" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <motion.div
-            className="monitoring__panel"
-            initial={{ opacity: 1, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
-            viewport={{ once: true, amount: 0.35 }}
-          >
-            <img
-              src={activeImages.monitoring}
-              alt="Clinical research associate reviewing source documents and study files"
-            />
-            <div className="panel-overlay">
-              <span>On-site monitoring</span>
-              <strong>CRA</strong>
-              <small>Data collection, source documentation, CRFs, compliance, and query resolution.</small>
+                  </motion.article>
+                );
+              })}
             </div>
-          </motion.div>
-        </section>
+          </section>
 
-        <section className="proof section" id="positioning">
-          <div className="section-heading section-heading--wide">
-            <p className="eyebrow eyebrow--dark">Positioning</p>
-            <h2>The CRO that takes responsibility.</h2>
-            <p className="section-heading__support">
-              The current Thera Research message centers on responsibility,
-              investigator knowledge, site dynamics, quality, audits, and
-              long-term sponsor and site relationships.
-            </p>
-          </div>
-          <div className="proof-grid">
-            {proofPoints.map((item, index) => {
-              const Icon = item.icon;
-              const itemNumber = String(index + 1).padStart(2, "0");
+          <section
+            className="patients"
+            id="patients"
+            style={patientsImageStyle}
+          >
+            <div className="patients__content">
+              <p className="eyebrow">{content.patients.eyebrow}</p>
+              <h2>{content.patients.heading}</h2>
+              <p>{content.patients.copy}</p>
+            </div>
+            <MagneticButton
+              href="#patient-registration"
+              variant="button--light"
+            >
+              {content.patients.cta} <ArrowRight size={18} aria-hidden="true" />
+            </MagneticButton>
+          </section>
 
-              return (
-                <motion.article
-                  key={item.title}
-                  className={index === 0 ? "proof-item proof-item--lead" : "proof-item"}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.46,
-                    delay: index * 0.045,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  viewport={{ once: true, amount: 0.25 }}
-                >
-                  <span className="proof-item__marker">{itemNumber}</span>
-                  <div className="proof-item__icon">
-                    <Icon size={22} aria-hidden="true" />
-                  </div>
-                  <div className="proof-item__body">
-                    <span className="proof-item__label">
-                      {index === 0 ? "Primary signal" : "Supporting signal"}
-                    </span>
-                    <h3>{item.title}</h3>
-                    <p>{item.copy}</p>
-                  </div>
-                </motion.article>
-              );
-            })}
-          </div>
-        </section>
+          <PatientRecruitmentSection content={content.patientRegistration} />
 
-        <section className="patients" id="patients">
-          <div className="patients__content">
-            <p className="eyebrow">Patient recruitment</p>
-            <h2>Enrollment support shaped around study demographics.</h2>
-            <p>
-              Thera Research understands participant demographics in each
-              therapeutic area, how to enroll efficiently, how to identify
-              high-enrolling sites, and how best to work with them.
-            </p>
-          </div>
-          <MagneticButton href="#contact" variant="button--light">
-            Register interest <ArrowRight size={18} aria-hidden="true" />
-          </MagneticButton>
-        </section>
+          <ContactSection content={content} />
+        </main>
 
-        <ContactSection />
-      </main>
-
-      <Footer logoDraft={logoDraft} />
-      <AnimatePresence>
-        {menuOpen && (
-          <MobileMenu
-            onClose={() => setMenuOpen(false)}
-            returnFocusRef={menuButtonRef}
-          />
-        )}
-      </AnimatePresence>
+        <Footer content={content} />
+        <AnimatePresence>
+          {menuOpen && (
+            <MobileMenu
+              onClose={() => setMenuOpen(false)}
+              returnFocusRef={menuButtonRef}
+              language={language}
+              setLanguage={setLanguage}
+              content={content}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </MotionConfig>
   );
@@ -616,19 +469,19 @@ function MagneticButton({
   );
 }
 
-function StudyOpsPanel() {
+function StudyOpsPanel({ content }: { content: SiteContent }) {
   return (
     <motion.div
       className="hero-panel"
       variants={heroFadeUp}
-      aria-label="Clinical trial management summary"
+      aria-label={content.studyPanel.aria}
     >
       <div className="hero-panel__top">
         <span className="live-dot" aria-hidden="true" />
-        <p>Clinical trial management</p>
+        <p>{content.studyPanel.title}</p>
       </div>
       <div className="hero-panel__body">
-        {operatingSignals.map((item) => (
+        {content.operatingSignals.map((item) => (
           <div className="signal-row" key={item.label}>
             <span>{item.label}</span>
             <strong>{item.value}</strong>
@@ -636,28 +489,24 @@ function StudyOpsPanel() {
         ))}
       </div>
       <div className="hero-panel__footer">
-        <span>Regulatory experience</span>
-        <strong>MoH / ISP inspections</strong>
+        <span>{content.studyPanel.footerLabel}</span>
+        <strong>{content.studyPanel.footerValue}</strong>
       </div>
     </motion.div>
   );
 }
 
-function WorkflowSection() {
+function WorkflowSection({ content }: { content: SiteContent["workflow"] }) {
   return (
     <section className="workflow" id="workflow">
       <div className="workflow__inner">
         <div className="workflow__heading">
-          <p className="eyebrow">Workflow</p>
-          <h2>One process from site identification to closure.</h2>
-          <p className="workflow__lead">
-            The operating line follows the current Thera Research service path:
-            identification, feasibility, selection, activation, monitoring,
-            recruitment follow-up, and site closure.
-          </p>
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2>{content.heading}</h2>
+          <p className="workflow__lead">{content.lead}</p>
         </div>
-        <div className="workflow__steps" aria-label="Study workflow checkpoints">
-          {workflowSteps.map((item, index) => (
+        <div className="workflow__steps" aria-label={content.aria}>
+          {content.steps.map((item, index) => (
             <motion.article
               className="workflow-step"
               key={item.step}
@@ -685,30 +534,412 @@ function WorkflowSection() {
   );
 }
 
-function ContactSection() {
+function PatientRecruitmentSection({
+  content,
+}: {
+  content: SiteContent["patientRegistration"];
+}) {
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    city: "",
+    diagnosed: "",
+    diagnosis: "",
+    consent: false,
+  });
+  const [status, setStatus] = useState<FormStatus>("empty");
+  const timerRef = useRef<number | null>(null);
+  const firstNameRef = useRef<HTMLInputElement>(null);
+  const lastNameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const diagnosedRef = useRef<HTMLInputElement>(null);
+  const diagnosisRef = useRef<HTMLTextAreaElement>(null);
+  const consentRef = useRef<HTMLInputElement>(null);
+  const firstName = form.firstName.trim();
+  const lastName = form.lastName.trim();
+  const phone = form.phone.trim();
+  const city = form.city.trim();
+  const diagnosis = form.diagnosis.trim();
+  const hasDiagnosedAnswer = Boolean(form.diagnosed);
+  const showFirstNameError = status === "error" && !firstName;
+  const showLastNameError = status === "error" && !lastName;
+  const showPhoneError = status === "error" && !phone;
+  const showCityError = status === "error" && !city;
+  const showDiagnosedError = status === "error" && !hasDiagnosedAnswer;
+  const showDiagnosisError = status === "error" && !diagnosis;
+  const showConsentError = status === "error" && !form.consent;
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        window.clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  function handlePatientChange(
+    event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
+    const field = event.currentTarget.dataset.field as PatientFormField;
+    const value =
+      event.currentTarget instanceof HTMLInputElement &&
+      event.currentTarget.type === "checkbox"
+        ? event.currentTarget.checked
+        : event.currentTarget.value;
+
+    setForm((current) => ({ ...current, [field]: value }));
+    if (status === "error" || status === "success") {
+      setStatus("empty");
+    }
+  }
+
+  function handlePatientSubmit(event: FormEvent<HTMLFormElement>) {
+    if (
+      !firstName ||
+      !lastName ||
+      !phone ||
+      !city ||
+      !hasDiagnosedAnswer ||
+      !diagnosis ||
+      !form.consent
+    ) {
+      event.preventDefault();
+      setStatus("error");
+
+      if (!firstName) {
+        firstNameRef.current?.focus();
+      } else if (!lastName) {
+        lastNameRef.current?.focus();
+      } else if (!phone) {
+        phoneRef.current?.focus();
+      } else if (!city) {
+        cityRef.current?.focus();
+      } else if (!hasDiagnosedAnswer) {
+        diagnosedRef.current?.focus();
+      } else if (!diagnosis) {
+        diagnosisRef.current?.focus();
+      } else {
+        consentRef.current?.focus();
+      }
+      return;
+    }
+
+    setStatus("loading");
+    timerRef.current = window.setTimeout(() => {
+      setStatus("success");
+    }, 900);
+  }
+
+  return (
+    <section
+      className="patient-registration section"
+      id="patient-registration"
+      aria-label={content.aria}
+    >
+      <div className="patient-registration__intro">
+        <p className="eyebrow eyebrow--dark">{content.eyebrow}</p>
+        <h2>{content.heading}</h2>
+        <p>{content.copy}</p>
+        <ul
+          className="patient-registration__steps"
+          aria-label={content.stepsAria}
+        >
+          {content.steps.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <li key={item.title}>
+                <span aria-hidden="true">
+                  <Icon size={18} />
+                </span>
+                <div>
+                  <strong>{item.title}</strong>
+                  <small>{item.copy}</small>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <form
+        className="patient-form"
+        action={patientFormAction}
+        method="post"
+        target="patient-registration-target"
+        onSubmit={handlePatientSubmit}
+        aria-label={content.formAria}
+        noValidate
+      >
+        <div className="patient-form__grid">
+          <label>
+            <span>{content.fields.firstName.label}</span>
+            <input
+              ref={firstNameRef}
+              name="entry.2092238618"
+              data-field="firstName"
+              value={form.firstName}
+              onChange={handlePatientChange}
+              autoComplete="given-name"
+              required
+              aria-required="true"
+              aria-invalid={showFirstNameError}
+              aria-describedby={
+                showFirstNameError ? "patient-first-name-error" : undefined
+              }
+            />
+            {showFirstNameError && (
+              <small className="field-error" id="patient-first-name-error">
+                {content.fields.firstName.error}
+              </small>
+            )}
+          </label>
+
+          <label>
+            <span>{content.fields.lastName.label}</span>
+            <input
+              ref={lastNameRef}
+              name="entry.1669915100"
+              data-field="lastName"
+              value={form.lastName}
+              onChange={handlePatientChange}
+              autoComplete="family-name"
+              required
+              aria-required="true"
+              aria-invalid={showLastNameError}
+              aria-describedby={
+                showLastNameError ? "patient-last-name-error" : undefined
+              }
+            />
+            {showLastNameError && (
+              <small className="field-error" id="patient-last-name-error">
+                {content.fields.lastName.error}
+              </small>
+            )}
+          </label>
+
+          <label>
+            <span>{content.fields.phone.label}</span>
+            <span className="patient-form__input-wrap">
+              <Phone size={17} aria-hidden="true" />
+              <input
+                ref={phoneRef}
+                name="entry.479301265"
+                data-field="phone"
+                type="tel"
+                value={form.phone}
+                onChange={handlePatientChange}
+                autoComplete="tel"
+                inputMode="tel"
+                required
+                aria-required="true"
+                aria-invalid={showPhoneError}
+                aria-describedby={
+                  showPhoneError ? "patient-phone-error" : undefined
+                }
+              />
+            </span>
+            {showPhoneError && (
+              <small className="field-error" id="patient-phone-error">
+                {content.fields.phone.error}
+              </small>
+            )}
+          </label>
+
+          <label>
+            <span>{content.fields.city.label}</span>
+            <span className="patient-form__input-wrap">
+              <MapPin size={17} aria-hidden="true" />
+              <input
+                ref={cityRef}
+                name="entry.1240379606"
+                data-field="city"
+                value={form.city}
+                onChange={handlePatientChange}
+                autoComplete="address-level2"
+                required
+                aria-required="true"
+                aria-invalid={showCityError}
+                aria-describedby={
+                  showCityError ? "patient-city-error" : undefined
+                }
+              />
+            </span>
+            {showCityError && (
+              <small className="field-error" id="patient-city-error">
+                {content.fields.city.error}
+              </small>
+            )}
+          </label>
+        </div>
+
+        <fieldset
+          aria-invalid={showDiagnosedError}
+          aria-describedby={
+            showDiagnosedError ? "patient-diagnosed-error" : undefined
+          }
+        >
+          <legend>{content.fields.diagnosed.label}</legend>
+          <div className="patient-form__choice-row">
+            <label className="patient-form__choice">
+              <input
+                ref={diagnosedRef}
+                name="entry.1753222212"
+                data-field="diagnosed"
+                type="radio"
+                value="Si"
+                checked={form.diagnosed === "Si"}
+                onChange={handlePatientChange}
+                required
+              />
+              <span>{content.fields.diagnosed.yes}</span>
+            </label>
+            <label className="patient-form__choice">
+              <input
+                name="entry.1753222212"
+                data-field="diagnosed"
+                type="radio"
+                value="No"
+                checked={form.diagnosed === "No"}
+                onChange={handlePatientChange}
+                required
+              />
+              <span>{content.fields.diagnosed.no}</span>
+            </label>
+          </div>
+          {showDiagnosedError && (
+            <small className="field-error" id="patient-diagnosed-error">
+              {content.fields.diagnosed.error}
+            </small>
+          )}
+        </fieldset>
+
+        <label>
+          <span>{content.fields.diagnosis.label}</span>
+          <textarea
+            ref={diagnosisRef}
+            name="entry.690214210"
+            data-field="diagnosis"
+            value={form.diagnosis}
+            onChange={handlePatientChange}
+            rows={3}
+            required
+            aria-required="true"
+            aria-invalid={showDiagnosisError}
+            aria-describedby={
+              showDiagnosisError ? "patient-diagnosis-error" : undefined
+            }
+          />
+          {showDiagnosisError && (
+            <small className="field-error" id="patient-diagnosis-error">
+              {content.fields.diagnosis.error}
+            </small>
+          )}
+        </label>
+
+        <label className="patient-form__consent">
+          <input
+            ref={consentRef}
+            name="entry.1642328336"
+            data-field="consent"
+            type="checkbox"
+            value="Si"
+            checked={form.consent}
+            onChange={handlePatientChange}
+            required
+            aria-required="true"
+            aria-invalid={showConsentError}
+            aria-describedby={
+              showConsentError ? "patient-consent-error" : undefined
+            }
+          />
+          <span>{content.fields.consent.label}</span>
+        </label>
+        <input type="hidden" name="entry.1642328336_sentinel" value="" />
+        {showConsentError && (
+          <small className="field-error" id="patient-consent-error">
+            {content.fields.consent.error}
+          </small>
+        )}
+
+        <div className="form-status" aria-live="polite" aria-atomic="true">
+          {status === "loading" ? (
+            <div
+              className="form-skeleton"
+              aria-label={content.status.loadingLabel}
+            >
+              <span />
+              <span />
+              <span />
+            </div>
+          ) : (
+            <p
+              className={`form-status__message form-status__message--${status}`}
+              role={status === "error" ? "alert" : "status"}
+            >
+              {status === "empty" && content.status.empty}
+              {status === "error" && (
+                <>
+                  <AlertCircle size={16} aria-hidden="true" />
+                  {content.status.error}
+                </>
+              )}
+              {status === "success" && (
+                <>
+                  <Check size={16} aria-hidden="true" />
+                  {content.status.success}
+                </>
+              )}
+            </p>
+          )}
+        </div>
+
+        <button className="button button--submit" type="submit">
+          {content.submit} <Send size={17} aria-hidden="true" />
+        </button>
+        <iframe
+          className="patient-form__target"
+          title={content.iframeTitle}
+          name="patient-registration-target"
+        />
+      </form>
+    </section>
+  );
+}
+
+function ContactSection({ content }: { content: SiteContent }) {
   return (
     <section className="contact-section section" id="contact">
       <div className="contact-section__copy">
-        <p className="eyebrow eyebrow--dark">Contact</p>
-        <h2>Start your next clinical study with Thera Research.</h2>
-        <p>
-          Contact the CRO that takes responsibility for driving and supporting
-          sponsor and site staff, with the goal of reduced study timelines and
-          enhanced study success.
-        </p>
-        <a className="email-link" href="mailto:x.verdina@theraresearch.com">
-          <Mail size={18} aria-hidden="true" />
-          x.verdina@theraresearch.com
-        </a>
+        <p className="eyebrow eyebrow--dark">{content.contact.eyebrow}</p>
+        <h2>{content.contact.heading}</h2>
+        <p>{content.contact.copy}</p>
+        <div className="contact-links">
+          <a className="contact-link" href="mailto:x.verdina@theraresearch.com">
+            <Mail size={18} aria-hidden="true" />
+            x.verdina@theraresearch.com
+          </a>
+          <a
+            className="contact-link"
+            href={linkedInUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <LinkedInIcon size={18} />
+            {content.meta.linkedIn}
+          </a>
+        </div>
       </div>
-      <ContactForm />
+      <ContactForm content={content.contactForm} />
     </section>
   );
 }
 
 type FormStatus = "empty" | "error" | "loading" | "success";
 
-function ContactForm() {
+function ContactForm({ content }: { content: SiteContent["contactForm"] }) {
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -771,18 +1002,18 @@ function ContactForm() {
     <form
       className="contact-form"
       onSubmit={handleSubmit}
-      aria-label="Clinical study contact request"
+      aria-label={content.aria}
       noValidate
     >
       <div className="form-grid">
         <label>
-          <span>Name</span>
+          <span>{content.fields.name.label}</span>
           <input
             ref={nameRef}
             name="name"
             value={form.name}
             onChange={handleChange}
-            placeholder="Sponsor or study lead"
+            placeholder={content.fields.name.placeholder}
             autoComplete="name"
             required
             aria-required="true"
@@ -791,24 +1022,22 @@ function ContactForm() {
               showNameError ? " contact-name-error" : ""
             }`}
           />
-          <small id="contact-name-hint">
-            Used only to identify the contact request.
-          </small>
+          <small id="contact-name-hint">{content.fields.name.hint}</small>
           {showNameError && (
             <small className="field-error" id="contact-name-error">
-              Enter your name.
+              {content.fields.name.error}
             </small>
           )}
         </label>
         <label>
-          <span>Email</span>
+          <span>{content.fields.email.label}</span>
           <input
             ref={emailRef}
             name="email"
             type="email"
             value={form.email}
             onChange={handleChange}
-            placeholder="name@company.com"
+            placeholder={content.fields.email.placeholder}
             autoComplete="email"
             required
             aria-required="true"
@@ -817,22 +1046,22 @@ function ContactForm() {
               showEmailError ? " contact-email-error" : ""
             }`}
           />
-          <small id="contact-email-hint">Corporate contact recommended.</small>
+          <small id="contact-email-hint">{content.fields.email.hint}</small>
           {showEmailError && (
             <small className="field-error" id="contact-email-error">
-              Enter a valid email address.
+              {content.fields.email.error}
             </small>
           )}
         </label>
       </div>
       <label>
-        <span>Study context</span>
+        <span>{content.fields.message.label}</span>
         <textarea
           ref={messageRef}
           name="message"
           value={form.message}
           onChange={handleChange}
-          placeholder="Therapeutic area, phase, sites, timeline, or recruitment needs"
+          placeholder={content.fields.message.placeholder}
           rows={5}
           required
           aria-required="true"
@@ -841,19 +1070,20 @@ function ContactForm() {
             showMessageError ? " contact-message-error" : ""
           }`}
         />
-        <small id="contact-message-hint">
-          Include the minimum useful scope for feasibility review.
-        </small>
+        <small id="contact-message-hint">{content.fields.message.hint}</small>
         {showMessageError && (
           <small className="field-error" id="contact-message-error">
-            Add the study context.
+            {content.fields.message.error}
           </small>
         )}
       </label>
 
       <div className="form-status" aria-live="polite" aria-atomic="true">
         {status === "loading" ? (
-          <div className="form-skeleton" aria-label="Preparing contact request">
+          <div
+            className="form-skeleton"
+            aria-label={content.status.loadingLabel}
+          >
             <span />
             <span />
             <span />
@@ -863,18 +1093,17 @@ function ContactForm() {
             className={`form-status__message form-status__message--${status}`}
             role={status === "error" ? "alert" : "status"}
           >
-            {status === "empty" &&
-              "Complete the fields to prepare a clinical study contact request."}
+            {status === "empty" && content.status.empty}
             {status === "error" && (
               <>
                 <AlertCircle size={16} aria-hidden="true" />
-                All fields are required for this demo flow.
+                {content.status.error}
               </>
             )}
             {status === "success" && (
               <>
                 <Check size={16} aria-hidden="true" />
-                Contact request prepared. Connect this form to CRM or email next.
+                {content.status.success}
               </>
             )}
           </p>
@@ -882,7 +1111,7 @@ function ContactForm() {
       </div>
 
       <button className="button button--submit" type="submit">
-        Prepare request <Send size={17} aria-hidden="true" />
+        {content.submit} <Send size={17} aria-hidden="true" />
       </button>
     </form>
   );
@@ -892,33 +1121,39 @@ function Header({
   menuOpen,
   menuButtonRef,
   setMenuOpen,
-  logoDraft,
+  language,
+  setLanguage,
+  content,
 }: {
   menuOpen: boolean;
   menuButtonRef: RefObject<HTMLButtonElement | null>;
   setMenuOpen: (value: boolean) => void;
-  logoDraft: LogoDraft;
+  language: Language;
+  setLanguage: (value: Language) => void;
+  content: SiteContent;
 }) {
   return (
     <header className="site-header">
-      <a className="brand" href="#home" aria-label="Thera Research home">
-        <BrandLogo tone="header" logoDraft={logoDraft} />
+      <a className="brand" href="#home" aria-label={content.meta.homeAria}>
+        <BrandLogo tone="header" />
       </a>
-      <nav className="desktop-nav" aria-label="Primary navigation">
-        {navItems.map((item) => (
+      <nav className="desktop-nav" aria-label={content.meta.navAria}>
+        {content.navItems.map((item) => (
           <a key={item.href} href={item.href}>
             {item.label}
           </a>
         ))}
       </nav>
-      <a className="header-contact" href="#contact">
-        Contact
-      </a>
+      <LanguageToggle
+        language={language}
+        setLanguage={setLanguage}
+        ariaLabel={content.meta.languageAria}
+      />
       <button
         ref={menuButtonRef}
         className="menu-button"
         type="button"
-        aria-label={menuOpen ? "Close menu" : "Open menu"}
+        aria-label={menuOpen ? content.meta.closeMenu : content.meta.openMenu}
         aria-expanded={menuOpen}
         aria-controls="mobile-navigation"
         onClick={() => setMenuOpen(!menuOpen)}
@@ -929,142 +1164,45 @@ function Header({
   );
 }
 
-function LogoLab({
-  logoDraft,
-  setLogoDraft,
+function LanguageToggle({
+  language,
+  setLanguage,
+  ariaLabel,
 }: {
-  logoDraft: LogoDraft;
-  setLogoDraft: Dispatch<SetStateAction<LogoDraft>>;
+  language: Language;
+  setLanguage: (value: Language) => void;
+  ariaLabel: string;
 }) {
-  const selectedOption = getLogoOption(logoDraft.option);
-
-  function updateLogoDraft(update: Partial<LogoDraft>) {
-    setLogoDraft((current) => normalizeLogoDraft({ ...current, ...update }));
-  }
-
   return (
-    <section className="logo-lab section" id="logo-lab">
-      <div className="logo-lab__heading">
-        <div>
-          <p className="eyebrow eyebrow--dark">Logo Lab</p>
-          <h2>15 premium PNG directions for the Thera Research mark.</h2>
-        </div>
-        <p>
-          Each option includes a white header PNG and a dark footer PNG, with
-          transparent backgrounds and high-resolution source files.
-        </p>
-      </div>
-
-      <div className="logo-lab__workspace">
-        <div
-          className="logo-lab__options"
-          role="radiogroup"
-          aria-label="Logo directions"
+    <div className="language-toggle" aria-label={ariaLabel} role="group">
+      {languageOptions.map((option) => (
+        <button
+          key={option.code}
+          type="button"
+          className={language === option.code ? "is-active" : ""}
+          aria-pressed={language === option.code}
+          aria-label={option.name}
+          onClick={() => setLanguage(option.code)}
         >
-          {logoOptions.map((option) => {
-            const isSelected = logoDraft.option === option.id;
-
-            return (
-              <button
-                className={`logo-option ${isSelected ? "is-selected" : ""}`}
-                key={option.id}
-                type="button"
-                role="radio"
-                aria-checked={isSelected}
-                onClick={() => updateLogoDraft({ option: option.id })}
-              >
-                <span className="logo-option__topline">
-                  <span>{option.name}</span>
-                  <span>{isSelected ? "Selected" : "Preview"}</span>
-                </span>
-                <span className="logo-option__copy">{option.description}</span>
-                <span className="logo-option__preview logo-option__preview--dark">
-                  <img
-                    className="logo-option__img"
-                    src={option.headerSrc}
-                    alt=""
-                    decoding="async"
-                  />
-                </span>
-                <span className="logo-option__preview logo-option__preview--light">
-                  <img
-                    className="logo-option__img"
-                    src={option.footerSrc}
-                    alt=""
-                    decoding="async"
-                  />
-                </span>
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="logo-editor" aria-label="Logo editor">
-          <div className="logo-editor__topline">
-            <div>
-              <span>Selected PNG</span>
-              <strong>{selectedOption.name}</strong>
-            </div>
-            <span>{logoDraft.scale}%</span>
-          </div>
-          <div className="logo-editor__live">
-            <div
-              className="logo-editor__preview logo-editor__preview--dark"
-              aria-label="Header logo preview"
-            >
-              <BrandLogo
-                tone="header"
-                logoDraft={logoDraft}
-                className="logo-editor__brand"
-              />
-            </div>
-            <div
-              className="logo-editor__preview logo-editor__preview--light"
-              aria-label="Footer logo preview"
-            >
-              <BrandLogo
-                tone="footer"
-                logoDraft={logoDraft}
-                className="logo-editor__brand"
-              />
-            </div>
-          </div>
-
-          <div className="logo-editor__controls">
-            <label className="logo-field logo-field--range">
-              <span>Size {logoDraft.scale}%</span>
-              <input
-                type="range"
-                min="86"
-                max="118"
-                step="1"
-                value={logoDraft.scale}
-                onChange={(event) =>
-                  updateLogoDraft({ scale: Number(event.target.value) })
-                }
-              />
-            </label>
-
-            <button
-              className="logo-editor__reset"
-              type="button"
-              onClick={() => setLogoDraft(defaultLogoDraft)}
-            >
-              Reset logo
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
+          {option.label}
+        </button>
+      ))}
+    </div>
   );
 }
 
 function MobileMenu({
   onClose,
   returnFocusRef,
+  language,
+  setLanguage,
+  content,
 }: {
   onClose: () => void;
   returnFocusRef: RefObject<HTMLButtonElement | null>;
+  language: Language;
+  setLanguage: (value: Language) => void;
+  content: SiteContent;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -1119,7 +1257,7 @@ function MobileMenu({
       className="mobile-menu"
       role="dialog"
       aria-modal="true"
-      aria-label="Mobile navigation"
+      aria-label={content.meta.mobileNavAria}
       onKeyDown={handleKeyDown}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -1127,7 +1265,7 @@ function MobileMenu({
     >
       <motion.nav
         id="mobile-navigation"
-        aria-label="Mobile navigation"
+        aria-label={content.meta.mobileNavAria}
         initial={{ y: -16 }}
         animate={{ y: 0 }}
         exit={{ y: -16 }}
@@ -1138,69 +1276,101 @@ function MobileMenu({
           onClick={closeAndReturnFocus}
         >
           <X size={18} aria-hidden="true" />
-          Close menu
+          {content.meta.closeMenu}
         </button>
-        {navItems.map((item) => (
+        <LanguageToggle
+          language={language}
+          setLanguage={setLanguage}
+          ariaLabel={content.meta.languageAria}
+        />
+        {content.navItems.map((item) => (
           <a key={item.href} href={item.href} onClick={onClose}>
             {item.label}
           </a>
         ))}
         <a href="mailto:x.verdina@theraresearch.com" onClick={onClose}>
-          Contact by email
+          {content.meta.emailMenu}
+        </a>
+        <a
+          href={linkedInUrl}
+          target="_blank"
+          rel="noreferrer"
+          onClick={onClose}
+        >
+          <LinkedInIcon size={18} />
+          {content.meta.linkedIn}
         </a>
       </motion.nav>
     </motion.div>
   );
 }
 
-function Footer({ logoDraft }: { logoDraft: LogoDraft }) {
+function Footer({ content }: { content: SiteContent }) {
   return (
     <footer className="footer">
       <div>
         <a
           className="brand brand--footer"
           href="#home"
-          aria-label="Thera Research home"
+          aria-label={content.meta.homeAria}
         >
-          <BrandLogo tone="footer" logoDraft={logoDraft} />
+          <BrandLogo tone="footer" />
         </a>
-        <p>
-          Clinical Research Organization based in Chile, supporting planning,
-          execution, reporting, monitoring, regulatory coordination, and patient
-          recruitment.
-        </p>
+        <p>{content.footer.copy}</p>
       </div>
       <div className="footer__contact">
-        <span>Clinical research organization</span>
-        <a href="mailto:x.verdina@theraresearch.com">
-          <Mail size={18} aria-hidden="true" />
-          x.verdina@theraresearch.com
-        </a>
+        <span>{content.footer.label}</span>
+        <div className="footer__contact-links">
+          <a href="mailto:x.verdina@theraresearch.com">
+            <Mail size={18} aria-hidden="true" />
+            x.verdina@theraresearch.com
+          </a>
+          <a href={linkedInUrl} target="_blank" rel="noreferrer">
+            <LinkedInIcon size={18} />
+            {content.meta.linkedIn}
+          </a>
+        </div>
       </div>
     </footer>
   );
 }
 
+function LinkedInIcon({ size = 18 }: { size?: number }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      focusable="false"
+      className="linkedin-icon"
+    >
+      <path
+        fill="currentColor"
+        d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.32 8.02h4.36V23H.32V8.02Zm7.18 0h4.17v2.05h.06c.58-1.1 2-2.26 4.12-2.26 4.41 0 5.23 2.9 5.23 6.68V23h-4.35v-7.55c0-1.8-.03-4.12-2.51-4.12-2.52 0-2.9 1.97-2.9 3.99V23H7.5V8.02Z"
+        transform="translate(1.4)"
+      />
+    </svg>
+  );
+}
+
 function BrandLogo({
   tone,
-  logoDraft,
   className = "",
 }: {
   tone: "header" | "footer";
-  logoDraft: LogoDraft;
   className?: string;
 }) {
-  const selectedOption = getLogoOption(logoDraft.option);
   const src =
-    tone === "header" ? selectedOption.headerSrc : selectedOption.footerSrc;
-  const logoScale = {
-    "--logo-scale": String(logoDraft.scale / 100),
+    tone === "header" ? pureWordmarkLogo.headerSrc : pureWordmarkLogo.footerSrc;
+  const logoScaleStyle = {
+    "--logo-scale": String(logoScale),
   } as CSSProperties;
 
   return (
     <span
       className={`brand__logo-frame ${className}`.trim()}
-      style={logoScale}
+      style={logoScaleStyle}
       aria-hidden="true"
     >
       <img
