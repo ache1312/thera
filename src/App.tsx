@@ -12,6 +12,7 @@ import {
   AnimatePresence,
   motion,
   MotionConfig,
+  type Variants,
   useMotionValue,
   useReducedMotion,
   useScroll,
@@ -38,15 +39,71 @@ import {
 } from "./content";
 
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+const premiumEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
 
-const heroFadeUp = {
+const heroFadeUp: Variants = {
   hidden: { opacity: 0, y: 22 },
-  show: { opacity: 1, y: 0 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.72, ease: premiumEase },
+  },
 };
 
-const revealUp = {
-  hidden: { opacity: 1, y: 16 },
-  show: { opacity: 1, y: 0 },
+const revealUp: Variants = {
+  hidden: { opacity: 0, y: 22 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.72, ease: premiumEase },
+  },
+};
+
+const revealMask: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 30,
+    clipPath: "inset(0 0 32% 0)",
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    clipPath: "inset(0 0 0% 0)",
+    transition: { duration: 0.9, ease: premiumEase },
+  },
+};
+
+const revealImage: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 36,
+    scale: 0.985,
+    clipPath: "inset(8% 0 8% 0)",
+  },
+  show: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    clipPath: "inset(0% 0 0% 0)",
+    transition: { duration: 0.95, ease: premiumEase },
+  },
+};
+
+const revealStagger: Variants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.085, delayChildren: 0.05 },
+  },
+};
+
+const rowReveal: Variants = {
+  hidden: { opacity: 0, y: 20, filter: "blur(6px)" },
+  show: {
+    opacity: 1,
+    y: 0,
+    filter: "blur(0px)",
+    transition: { duration: 0.66, ease: premiumEase },
+  },
 };
 
 const pureWordmarkLogo = {
@@ -91,6 +148,7 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openService, setOpenService] = useState(0);
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const content = siteContent[language];
   const activeImages = clinicalIntelligenceImages;
@@ -119,6 +177,31 @@ function App() {
     window.localStorage.setItem(languageStorageKey, language);
   }, [language]);
 
+  useEffect(() => {
+    let frame = 0;
+    let currentScrolled = window.scrollY > 24;
+
+    setIsHeaderScrolled(currentScrolled);
+
+    function handleScroll() {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const nextScrolled = window.scrollY > 24;
+        if (nextScrolled !== currentScrolled) {
+          currentScrolled = nextScrolled;
+          setIsHeaderScrolled(nextScrolled);
+        }
+      });
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="site-shell theme-intelligence">
@@ -132,6 +215,7 @@ function App() {
           language={language}
           setLanguage={setLanguage}
           content={content}
+          isScrolled={isHeaderScrolled}
         />
         <main id="main-content" tabIndex={-1}>
           <section className="hero" id="home" aria-label={content.hero.aria}>
@@ -156,7 +240,9 @@ function App() {
               }}
             >
               <div className="hero__copy">
-                <motion.h1 variants={heroFadeUp}>Thera Research</motion.h1>
+                <motion.h1 className="text-reveal" variants={revealMask}>
+                  Thera Research
+                </motion.h1>
                 <motion.p className="hero__lead" variants={heroFadeUp}>
                   {content.hero.lead}
                 </motion.p>
@@ -185,23 +271,28 @@ function App() {
               viewport={{ once: true, amount: 0.35 }}
               variants={{
                 hidden: {},
-                show: { transition: { staggerChildren: 0.1 } },
+                show: { transition: { staggerChildren: 0.09 } },
               }}
             >
               <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
                 {content.intro.eyebrow}
               </motion.p>
-              <motion.h2 variants={revealUp}>{content.intro.heading}</motion.h2>
+              <motion.h2 className="text-reveal" variants={revealMask}>
+                {content.intro.heading}
+              </motion.h2>
               <motion.p variants={revealUp}>{content.intro.copy}</motion.p>
             </motion.div>
             <motion.div
               className="intro__visual"
-              initial={{ opacity: 1, y: 22 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+              initial="hidden"
+              whileInView="show"
+              variants={revealImage}
               viewport={{ once: true, amount: 0.35 }}
             >
-              <img src={activeImages.lab} alt={content.intro.imageAlt} />
+              <ParallaxImage
+                src={activeImages.lab}
+                alt={content.intro.imageAlt}
+              />
               <div className="signal-strip" aria-hidden="true">
                 <span />
                 <span />
@@ -212,16 +303,30 @@ function App() {
           </section>
 
           <section className="section services" id="services">
-            <div className="section-heading section-heading--split">
+            <motion.div
+              className="section-heading section-heading--split"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.28 }}
+              variants={revealStagger}
+            >
               <div>
-                <p className="eyebrow eyebrow--dark">
+                <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
                   {content.services.eyebrow}
-                </p>
-                <h2>{content.services.heading}</h2>
+                </motion.p>
+                <motion.h2 className="text-reveal" variants={revealMask}>
+                  {content.services.heading}
+                </motion.h2>
               </div>
-              <p>{content.services.copy}</p>
-            </div>
-            <div className="capability-list">
+              <motion.p variants={revealUp}>{content.services.copy}</motion.p>
+            </motion.div>
+            <motion.div
+              className="capability-list"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.18 }}
+              variants={revealStagger}
+            >
               {content.capabilities.map((item, index) => {
                 const Icon = item.icon;
                 const serviceId = `service-${item.eyebrow}`;
@@ -231,14 +336,7 @@ function App() {
                   <motion.article
                     className={`capability-row ${isOpen ? "is-open" : ""}`}
                     key={item.title}
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.48,
-                      delay: index * 0.04,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    viewport={{ once: true, amount: 0.25 }}
+                    variants={rowReveal}
                   >
                     <div className="capability-row__index">{item.eyebrow}</div>
                     <div className="capability-row__icon">
@@ -299,35 +397,43 @@ function App() {
                   </motion.article>
                 );
               })}
-            </div>
+            </motion.div>
           </section>
 
           <WorkflowSection content={content.workflow} />
 
           <section className="monitoring section" id="monitoring">
-            <div className="monitoring__copy">
-              <p className="eyebrow eyebrow--dark">
+            <motion.div
+              className="monitoring__copy"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.35 }}
+              variants={revealStagger}
+            >
+              <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
                 {content.monitoring.eyebrow}
-              </p>
-              <h2>{content.monitoring.heading}</h2>
-              <p>{content.monitoring.copy}</p>
-              <ul className="check-list">
+              </motion.p>
+              <motion.h2 className="text-reveal" variants={revealMask}>
+                {content.monitoring.heading}
+              </motion.h2>
+              <motion.p variants={revealUp}>{content.monitoring.copy}</motion.p>
+              <motion.ul className="check-list" variants={revealStagger}>
                 {content.monitoring.signals.map((item) => (
-                  <li key={item}>
+                  <motion.li key={item} variants={rowReveal}>
                     <Check size={18} aria-hidden="true" />
                     {item}
-                  </li>
+                  </motion.li>
                 ))}
-              </ul>
-            </div>
+              </motion.ul>
+            </motion.div>
             <motion.div
               className="monitoring__panel"
-              initial={{ opacity: 1, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.68, ease: [0.16, 1, 0.3, 1] }}
+              initial="hidden"
+              whileInView="show"
+              variants={revealImage}
               viewport={{ once: true, amount: 0.35 }}
             >
-              <img
+              <ParallaxImage
                 src={activeImages.monitoring}
                 alt={content.monitoring.imageAlt}
               />
@@ -340,14 +446,33 @@ function App() {
           </section>
 
           <section className="proof section" id="positioning">
-            <div className="section-heading section-heading--wide">
-              <p className="eyebrow eyebrow--dark">{content.proof.eyebrow}</p>
-              <h2>{content.proof.heading}</h2>
-              <p className="section-heading__support">
+            <motion.div
+              className="section-heading section-heading--wide"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.32 }}
+              variants={revealStagger}
+            >
+              <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+                {content.proof.eyebrow}
+              </motion.p>
+              <motion.h2 className="text-reveal" variants={revealMask}>
+                {content.proof.heading}
+              </motion.h2>
+              <motion.p
+                className="section-heading__support"
+                variants={revealUp}
+              >
                 {content.proof.support}
-              </p>
-            </div>
-            <div className="proof-grid">
+              </motion.p>
+            </motion.div>
+            <motion.div
+              className="proof-grid"
+              initial="hidden"
+              whileInView="show"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={revealStagger}
+            >
               {content.proof.points.map((item, index) => {
                 const Icon = item.icon;
                 const itemNumber = String(index + 1).padStart(2, "0");
@@ -358,14 +483,7 @@ function App() {
                     className={
                       index === 0 ? "proof-item proof-item--lead" : "proof-item"
                     }
-                    initial={{ opacity: 0, y: 18 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.46,
-                      delay: index * 0.045,
-                      ease: [0.16, 1, 0.3, 1],
-                    }}
-                    viewport={{ once: true, amount: 0.25 }}
+                    variants={rowReveal}
                   >
                     <span className="proof-item__marker">{itemNumber}</span>
                     <div className="proof-item__icon">
@@ -383,13 +501,17 @@ function App() {
                   </motion.article>
                 );
               })}
-            </div>
+            </motion.div>
           </section>
 
-          <section
+          <motion.section
             className="patients"
             id="patients"
             style={patientsImageStyle}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.35 }}
+            variants={revealImage}
           >
             <div className="patients__content">
               <p className="eyebrow">{content.patients.eyebrow}</p>
@@ -402,7 +524,7 @@ function App() {
             >
               {content.patients.cta} <ArrowRight size={18} aria-hidden="true" />
             </MagneticButton>
-          </section>
+          </motion.section>
 
           <PatientRecruitmentSection content={content.patientRegistration} />
 
@@ -469,6 +591,26 @@ function MagneticButton({
   );
 }
 
+function ParallaxImage({ src, alt }: { src: string; alt: string }) {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const shouldReduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: imageRef,
+    offset: ["start end", "end start"],
+  });
+  const y = useTransform(scrollYProgress, [0, 1], [-24, 24]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.06, 1.01]);
+
+  return (
+    <motion.img
+      ref={imageRef}
+      src={src}
+      alt={alt}
+      style={shouldReduceMotion ? undefined : { y, scale }}
+    />
+  );
+}
+
 function StudyOpsPanel({ content }: { content: SiteContent }) {
   return (
     <motion.div
@@ -500,24 +642,36 @@ function WorkflowSection({ content }: { content: SiteContent["workflow"] }) {
   return (
     <section className="workflow" id="workflow">
       <div className="workflow__inner">
-        <div className="workflow__heading">
-          <p className="eyebrow">{content.eyebrow}</p>
-          <h2>{content.heading}</h2>
-          <p className="workflow__lead">{content.lead}</p>
-        </div>
-        <div className="workflow__steps" aria-label={content.aria}>
+        <motion.div
+          className="workflow__heading"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.38 }}
+          variants={revealStagger}
+        >
+          <motion.p className="eyebrow" variants={revealUp}>
+            {content.eyebrow}
+          </motion.p>
+          <motion.h2 className="text-reveal" variants={revealMask}>
+            {content.heading}
+          </motion.h2>
+          <motion.p className="workflow__lead" variants={revealUp}>
+            {content.lead}
+          </motion.p>
+        </motion.div>
+        <motion.div
+          className="workflow__steps"
+          aria-label={content.aria}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.18 }}
+          variants={revealStagger}
+        >
           {content.steps.map((item, index) => (
             <motion.article
               className="workflow-step"
               key={item.step}
-              initial={{ opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.42,
-                delay: index * 0.045,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-              viewport={{ once: true, amount: 0.2 }}
+              variants={rowReveal}
             >
               <span className="workflow-step__node">
                 {String(index + 1).padStart(2, "0")}
@@ -528,7 +682,7 @@ function WorkflowSection({ content }: { content: SiteContent["workflow"] }) {
               </div>
             </motion.article>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
@@ -633,15 +787,23 @@ function PatientRecruitmentSection({
   }
 
   return (
-    <section
+    <motion.section
       className="patient-registration section"
       id="patient-registration"
       aria-label={content.aria}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.18 }}
+      variants={revealStagger}
     >
-      <div className="patient-registration__intro">
-        <p className="eyebrow eyebrow--dark">{content.eyebrow}</p>
-        <h2>{content.heading}</h2>
-        <p>{content.copy}</p>
+      <motion.div className="patient-registration__intro" variants={revealUp}>
+        <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+          {content.eyebrow}
+        </motion.p>
+        <motion.h2 className="text-reveal" variants={revealMask}>
+          {content.heading}
+        </motion.h2>
+        <motion.p variants={revealUp}>{content.copy}</motion.p>
         <ul
           className="patient-registration__steps"
           aria-label={content.stepsAria}
@@ -662,9 +824,9 @@ function PatientRecruitmentSection({
             );
           })}
         </ul>
-      </div>
+      </motion.div>
 
-      <form
+      <motion.form
         className="patient-form"
         action={patientFormAction}
         method="post"
@@ -672,6 +834,7 @@ function PatientRecruitmentSection({
         onSubmit={handlePatientSubmit}
         aria-label={content.formAria}
         noValidate
+        variants={revealImage}
       >
         <div className="patient-form__grid">
           <label>
@@ -904,18 +1067,29 @@ function PatientRecruitmentSection({
           title={content.iframeTitle}
           name="patient-registration-target"
         />
-      </form>
-    </section>
+      </motion.form>
+    </motion.section>
   );
 }
 
 function ContactSection({ content }: { content: SiteContent }) {
   return (
-    <section className="contact-section section" id="contact">
-      <div className="contact-section__copy">
-        <p className="eyebrow eyebrow--dark">{content.contact.eyebrow}</p>
-        <h2>{content.contact.heading}</h2>
-        <p>{content.contact.copy}</p>
+    <motion.section
+      className="contact-section section"
+      id="contact"
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.24 }}
+      variants={revealStagger}
+    >
+      <motion.div className="contact-section__copy" variants={revealUp}>
+        <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+          {content.contact.eyebrow}
+        </motion.p>
+        <motion.h2 className="text-reveal" variants={revealMask}>
+          {content.contact.heading}
+        </motion.h2>
+        <motion.p variants={revealUp}>{content.contact.copy}</motion.p>
         <div className="contact-links">
           <a className="contact-link" href="mailto:x.verdina@theraresearch.com">
             <Mail size={18} aria-hidden="true" />
@@ -931,9 +1105,9 @@ function ContactSection({ content }: { content: SiteContent }) {
             {content.meta.linkedIn}
           </a>
         </div>
-      </div>
+      </motion.div>
       <ContactForm content={content.contactForm} />
-    </section>
+    </motion.section>
   );
 }
 
@@ -999,11 +1173,12 @@ function ContactForm({ content }: { content: SiteContent["contactForm"] }) {
   }
 
   return (
-    <form
+    <motion.form
       className="contact-form"
       onSubmit={handleSubmit}
       aria-label={content.aria}
       noValidate
+      variants={revealImage}
     >
       <div className="form-grid">
         <label>
@@ -1113,7 +1288,7 @@ function ContactForm({ content }: { content: SiteContent["contactForm"] }) {
       <button className="button button--submit" type="submit">
         {content.submit} <Send size={17} aria-hidden="true" />
       </button>
-    </form>
+    </motion.form>
   );
 }
 
@@ -1124,6 +1299,7 @@ function Header({
   language,
   setLanguage,
   content,
+  isScrolled,
 }: {
   menuOpen: boolean;
   menuButtonRef: RefObject<HTMLButtonElement | null>;
@@ -1131,9 +1307,10 @@ function Header({
   language: Language;
   setLanguage: (value: Language) => void;
   content: SiteContent;
+  isScrolled: boolean;
 }) {
   return (
-    <header className="site-header">
+    <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
       <a className="brand" href="#home" aria-label={content.meta.homeAria}>
         <BrandLogo tone="header" />
       </a>
