@@ -101,6 +101,14 @@ const rowReveal: Variants = {
   },
 };
 
+const workflowStepReveal: Variants = {
+  hidden: { y: 16 },
+  show: {
+    y: 0,
+    transition: { duration: 0.54, ease: premiumEase },
+  },
+};
+
 const pureWordmarkLogo = {
   headerSrc: assetPath("assets/logos/pure-wordmark-header.png"),
   footerSrc: assetPath("assets/logos/pure-wordmark-footer.png"),
@@ -664,7 +672,7 @@ function WorkflowSection({ content }: { content: SiteContent["workflow"] }) {
             <motion.article
               className="workflow-step"
               key={item.step}
-              variants={rowReveal}
+              variants={workflowStepReveal}
             >
               <span className="workflow-step__node">
                 {String(index + 1).padStart(2, "0")}

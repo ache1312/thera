@@ -797,14 +797,22 @@ h3 {
 }
 
 .workflow__steps {
+  position: relative;
+  isolation: isolate;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   border-top: 1px solid rgba(24, 50, 56, 0.1);
   border-left: 1px solid rgba(24, 50, 56, 0.1);
 }
 
+.workflow__steps::before {
+  z-index: 0;
+  pointer-events: none;
+}
+
 .workflow-step {
   position: relative;
+  z-index: 1;
   min-height: 210px;
   padding: clamp(22px, 3vw, 30px);
   border-right: 1px solid rgba(24, 50, 56, 0.1);
@@ -824,6 +832,8 @@ h3 {
 }
 
 .workflow-step__node {
+  position: relative;
+  z-index: 2;
   display: block;
   margin-bottom: 44px;
   color: var(--teal-dark);
@@ -833,6 +843,11 @@ h3 {
   transition:
     color 220ms ease,
     transform 260ms var(--ease-out);
+}
+
+.workflow-step__body {
+  position: relative;
+  z-index: 2;
 }
 
 .workflow-step h3 {
@@ -2457,8 +2472,8 @@ h3 {
     content: "";
     position: absolute;
     z-index: 0;
-    top: 12px;
-    bottom: 12px;
+    top: 38px;
+    bottom: 38px;
     left: 18px;
     width: 1px;
     background: linear-gradient(
@@ -2487,8 +2502,6 @@ h3 {
   }
 
   .workflow-step__node {
-    position: relative;
-    z-index: 2;
     display: grid;
     width: 38px;
     height: 38px;
@@ -2790,8 +2803,8 @@ h3 {
   .workflow__steps::before {
     content: "";
     position: absolute;
-    top: 28px;
-    bottom: 28px;
+    top: 64px;
+    bottom: 64px;
     left: 31px;
     width: 1px;
     background: linear-gradient(
@@ -2818,8 +2831,6 @@ h3 {
   }
 
   .workflow-step__node {
-    position: relative;
-    z-index: 1;
     display: grid;
     width: 64px;
     height: 64px;
