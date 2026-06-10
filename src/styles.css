@@ -154,7 +154,7 @@ button {
 .brand__logo-frame {
   display: inline-flex;
   width: 238px;
-  height: 44px;
+  height: 70px;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
@@ -1422,7 +1422,7 @@ h3 {
 
 .brand--footer .brand__logo-frame {
   width: 260px;
-  height: 58px;
+  height: 76px;
 }
 
 .footer p {
@@ -1628,7 +1628,7 @@ h3 {
 
   .brand__logo-frame {
     width: min(160px, calc(100vw - 96px));
-    height: 42px;
+    height: 47px;
   }
 
   .site-header > .language-toggle {
@@ -2223,6 +2223,7 @@ h3 {
 @media (max-width: 760px) {
   .brand__logo-frame {
     width: min(152px, calc(100vw - 92px));
+    height: 45px;
   }
 
   .theme-intelligence .hero {
