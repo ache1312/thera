@@ -1,11 +1,14 @@
 import type {
   ChangeEvent,
+  ComponentProps,
   CSSProperties,
+  Dispatch,
   FormEvent,
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   ReactNode,
   RefObject,
+  SetStateAction,
 } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -124,6 +127,20 @@ const linkedInUrl =
 const patientFormAction =
   "https://docs.google.com/forms/d/e/1FAIpQLSeQtFC6Eptj0kx4aBSH5RakAoFBMOZG3EXMR3EJzH5v7l3Cvw/formResponse";
 const languageStorageKey = "thera-language";
+const pageRoutes = {
+  home: "/",
+  services: "/services",
+  patients: "/patients",
+  insights: "/insights",
+  contact: "/contact",
+} as const;
+
+type PageKey = keyof typeof pageRoutes;
+type MotionImageStyle = ComponentProps<typeof motion.img>["style"];
+type PageNavigateHandler = (
+  page: PageKey,
+  event?: ReactMouseEvent<HTMLAnchorElement>,
+) => void;
 
 type PatientFormField =
   | "firstName"
@@ -159,10 +176,44 @@ function getInitialLanguage(): Language {
   return window.navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
 }
 
+function getBasePath() {
+  const base = import.meta.env.BASE_URL;
+  return base.endsWith("/") ? base.slice(0, -1) : base;
+}
+
+function getPagePath(page: PageKey) {
+  const base = getBasePath();
+  return `${base}${pageRoutes[page]}` || "/";
+}
+
+function getPageFromLocation(): PageKey {
+  if (typeof window === "undefined") {
+    return "home";
+  }
+
+  const base = getBasePath();
+  let pathname = window.location.pathname;
+
+  if (base && pathname.startsWith(base)) {
+    pathname = pathname.slice(base.length) || "/";
+  }
+
+  if (!pathname.startsWith("/")) {
+    pathname = `/${pathname}`;
+  }
+
+  const match = Object.entries(pageRoutes).find(
+    ([, route]) => route === pathname,
+  );
+
+  return (match?.[0] as PageKey | undefined) ?? "home";
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [openService, setOpenService] = useState(0);
   const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  const [page, setPage] = useState<PageKey>(getPageFromLocation);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const content = siteContent[language];
@@ -193,6 +244,17 @@ function App() {
   }, [language]);
 
   useEffect(() => {
+    function handlePopState() {
+      setPage(getPageFromLocation());
+      window.requestAnimationFrame(() => window.scrollTo({ top: 0 }));
+    }
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
     let frame = 0;
     let currentScrolled = window.scrollY > 24;
 
@@ -217,6 +279,26 @@ function App() {
     };
   }, []);
 
+  function navigateToPage(
+    nextPage: PageKey,
+    event?: ReactMouseEvent<HTMLAnchorElement>,
+  ) {
+    event?.preventDefault();
+
+    if (nextPage === page) {
+      setMenuOpen(false);
+      window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
+      return;
+    }
+
+    window.history.pushState({}, "", getPagePath(nextPage));
+    setPage(nextPage);
+    setMenuOpen(false);
+    window.requestAnimationFrame(() =>
+      window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" }),
+    );
+  }
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="site-shell theme-intelligence">
@@ -231,9 +313,98 @@ function App() {
           setLanguage={setLanguage}
           content={content}
           isScrolled={isHeaderScrolled}
+          activePage={page}
+          onNavigate={navigateToPage}
         />
-        <main id="main-content" tabIndex={-1}>
-          <section className="hero" id="home" aria-label={content.hero.aria}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.main
+            id="main-content"
+            className={`page-main page-main--${page}`}
+            tabIndex={-1}
+            key={page}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
+            transition={{ duration: 0.42, ease: premiumEase }}
+          >
+            {page === "home" && (
+              <HomePage
+                content={content}
+                activeImages={activeImages}
+                heroImageStyle={heroImageStyle}
+                patientsImageStyle={patientsImageStyle}
+                onNavigate={navigateToPage}
+              />
+            )}
+            {page === "services" && (
+              <ServicesPage
+                content={content}
+                activeImages={activeImages}
+                onNavigate={navigateToPage}
+                openService={openService}
+                setOpenService={setOpenService}
+              />
+            )}
+            {page === "patients" && (
+              <PatientsPage
+                content={content}
+                activeImages={activeImages}
+                patientsImageStyle={patientsImageStyle}
+                onNavigate={navigateToPage}
+              />
+            )}
+            {page === "insights" && (
+              <InsightsPage
+                content={content}
+                language={language}
+                activeImages={activeImages}
+                onNavigate={navigateToPage}
+              />
+            )}
+            {page === "contact" && (
+              <ContactPage
+                content={content}
+                activeImages={activeImages}
+                onNavigate={navigateToPage}
+              />
+            )}
+          </motion.main>
+        </AnimatePresence>
+        <Footer content={content} onNavigate={navigateToPage} />
+        <AnimatePresence>
+          {menuOpen && (
+            <MobileMenu
+              onClose={() => setMenuOpen(false)}
+              returnFocusRef={menuButtonRef}
+              language={language}
+              setLanguage={setLanguage}
+              content={content}
+              activePage={page}
+              onNavigate={navigateToPage}
+            />
+          )}
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
+  );
+}
+
+function HomePage({
+  content,
+  activeImages,
+  heroImageStyle,
+  patientsImageStyle,
+  onNavigate,
+}: {
+  content: SiteContent;
+  activeImages: typeof clinicalIntelligenceImages;
+  heroImageStyle: MotionImageStyle;
+  patientsImageStyle: CSSProperties;
+  onNavigate: PageNavigateHandler;
+}) {
+  return (
+    <>
+      <section className="hero" id="home" aria-label={content.hero.aria}>
             <motion.img
               className="hero__image"
               src={activeImages.hero}
@@ -260,13 +431,18 @@ function App() {
                   {content.hero.lead}
                 </motion.p>
                 <motion.div className="hero__actions" variants={heroFadeUp}>
-                  <MagneticButton href="#contact" variant="button--primary">
+                  <MagneticButton
+                    href={getPagePath("contact")}
+                    variant="button--primary"
+                    onClick={(event) => onNavigate("contact", event)}
+                  >
                     {content.hero.primaryCta}{" "}
                     <ArrowRight size={18} aria-hidden="true" />
                   </MagneticButton>
                   <MagneticButton
-                    href="#patient-registration"
+                    href={getPagePath("patients")}
                     variant="button--ghost"
+                    onClick={(event) => onNavigate("patients", event)}
                   >
                     {content.hero.secondaryCta}
                   </MagneticButton>
@@ -311,154 +487,13 @@ function App() {
                 <span />
                 <span />
                 <span />
-              </div>
-            </motion.div>
-          </section>
+	              </div>
+	            </motion.div>
+	          </section>
 
-          <section className="section services" id="services">
-            <motion.div
-              className="section-heading section-heading--split"
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.28 }}
-              variants={revealStagger}
-            >
-              <div>
-                <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
-                  {content.services.eyebrow}
-                </motion.p>
-                <motion.h2 className="text-reveal" variants={revealMask}>
-                  {content.services.heading}
-                </motion.h2>
-              </div>
-              <motion.p variants={revealUp}>{content.services.copy}</motion.p>
-            </motion.div>
-            <motion.div
-              className="capability-list"
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.18 }}
-              variants={revealStagger}
-            >
-              {content.capabilities.map((item, index) => {
-                const Icon = item.icon;
-                const serviceId = `service-${item.eyebrow}`;
-                const isOpen = openService === index;
+          <RouteGatewaySection content={content} onNavigate={onNavigate} />
 
-                return (
-                  <motion.article
-                    className={`capability-row ${isOpen ? "is-open" : ""}`}
-                    key={item.title}
-                    variants={rowReveal}
-                  >
-                    <div className="capability-row__index">{item.eyebrow}</div>
-                    <div className="capability-row__icon">
-                      <Icon size={23} aria-hidden="true" />
-                    </div>
-                    <div className="capability-row__main">
-                      <h3 className="capability-row__desktop-title">
-                        {item.title}
-                      </h3>
-                      <button
-                        className="capability-row__mobile-trigger"
-                        type="button"
-                        aria-expanded={isOpen}
-                        aria-controls={`${serviceId}-details ${serviceId}-meta`}
-                        onClick={() =>
-                          setOpenService((current) =>
-                            current === index ? -1 : index,
-                          )
-                        }
-                      >
-                        <span className="capability-row__trigger-copy">
-                          <span>{item.title}</span>
-                          <span className="capability-row__risk-pill">
-                            {item.risk}
-                          </span>
-                        </span>
-                        <ChevronRight
-                          className="capability-row__mobile-chevron"
-                          size={18}
-                          aria-hidden="true"
-                        />
-                      </button>
-                      <div
-                        className="capability-row__details"
-                        id={`${serviceId}-details`}
-                      >
-                        <p>{item.copy}</p>
-                      </div>
-                    </div>
-                    <dl
-                      className="capability-row__meta"
-                      id={`${serviceId}-meta`}
-                    >
-                      <div>
-                        <dt>{content.services.deliverableLabel}</dt>
-                        <dd>{item.deliverable}</dd>
-                      </div>
-                      <div>
-                        <dt>{content.services.riskLabel}</dt>
-                        <dd>{item.risk}</dd>
-                      </div>
-                    </dl>
-                    <ChevronRight
-                      className="capability-row__desktop-chevron"
-                      size={22}
-                      aria-hidden="true"
-                    />
-                  </motion.article>
-                );
-              })}
-            </motion.div>
-          </section>
-
-          <WorkflowSection content={content.workflow} />
-
-          <section className="monitoring section" id="monitoring">
-            <motion.div
-              className="monitoring__copy"
-              initial="hidden"
-              whileInView="show"
-              viewport={{ once: true, amount: 0.35 }}
-              variants={revealStagger}
-            >
-              <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
-                {content.monitoring.eyebrow}
-              </motion.p>
-              <motion.h2 className="text-reveal" variants={revealMask}>
-                {content.monitoring.heading}
-              </motion.h2>
-              <motion.p variants={revealUp}>{content.monitoring.copy}</motion.p>
-              <motion.ul className="check-list" variants={revealStagger}>
-                {content.monitoring.signals.map((item) => (
-                  <motion.li key={item} variants={rowReveal}>
-                    <Check size={18} aria-hidden="true" />
-                    {item}
-                  </motion.li>
-                ))}
-              </motion.ul>
-            </motion.div>
-            <motion.div
-              className="monitoring__panel"
-              initial="hidden"
-              whileInView="show"
-              variants={revealImage}
-              viewport={{ once: true, amount: 0.35 }}
-            >
-              <ParallaxImage
-                src={activeImages.monitoring}
-                alt={content.monitoring.imageAlt}
-              />
-              <div className="panel-overlay">
-                <span>{content.monitoring.overlayLabel}</span>
-                <strong>{content.monitoring.overlayTitle}</strong>
-                <small>{content.monitoring.overlayCopy}</small>
-              </div>
-            </motion.div>
-          </section>
-
-          <section className="proof section" id="positioning">
+	          <section className="proof section" id="positioning">
             <motion.div
               className="section-heading section-heading--wide"
               initial="hidden"
@@ -532,34 +567,470 @@ function App() {
               <p>{content.patients.copy}</p>
             </div>
             <MagneticButton
-              href="#patient-registration"
+              href={getPagePath("patients")}
               variant="button--light"
+              onClick={(event) => onNavigate("patients", event)}
             >
               {content.patients.cta} <ArrowRight size={18} aria-hidden="true" />
             </MagneticButton>
           </motion.section>
+    </>
+  );
+}
 
-          <PatientRecruitmentSection content={content.patientRegistration} />
+function RouteGatewaySection({
+  content,
+  onNavigate,
+}: {
+  content: SiteContent;
+  onNavigate: PageNavigateHandler;
+}) {
+  const routePages: PageKey[] = ["services", "patients", "insights", "contact"];
 
-          <LinkedInNewsSection content={content} language={language} />
+  return (
+    <section className="route-gateway section" aria-label={content.homeHub.aria}>
+      <motion.div
+        className="section-heading section-heading--split"
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.28 }}
+        variants={revealStagger}
+      >
+        <div>
+          <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+            {content.homeHub.eyebrow}
+          </motion.p>
+          <motion.h2 className="text-reveal" variants={revealMask}>
+            {content.homeHub.heading}
+          </motion.h2>
+        </div>
+        <motion.p variants={revealUp}>{content.homeHub.copy}</motion.p>
+      </motion.div>
 
-          <ContactSection content={content} />
-        </main>
+      <motion.div
+        className="route-grid"
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, amount: 0.18 }}
+        variants={revealStagger}
+      >
+        {routePages.map((route, index) => {
+          const pageContent = content.pages[route];
 
-        <Footer content={content} />
-        <AnimatePresence>
-          {menuOpen && (
-            <MobileMenu
-              onClose={() => setMenuOpen(false)}
-              returnFocusRef={menuButtonRef}
-              language={language}
-              setLanguage={setLanguage}
-              content={content}
-            />
-          )}
-        </AnimatePresence>
-      </div>
-    </MotionConfig>
+          return (
+            <motion.article
+              className="route-card"
+              key={route}
+              variants={rowReveal}
+            >
+              <span className="route-card__index">
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <h3>{pageContent.heading}</h3>
+              <p>{pageContent.copy}</p>
+              <a
+                className="route-card__link"
+                href={getPagePath(route)}
+                onClick={(event) => onNavigate(route, event)}
+              >
+                {content.homeHub.cta}
+                <ArrowRight size={17} aria-hidden="true" />
+              </a>
+            </motion.article>
+          );
+        })}
+      </motion.div>
+    </section>
+  );
+}
+
+function ServicesPage({
+  content,
+  activeImages,
+  onNavigate,
+  openService,
+  setOpenService,
+}: {
+  content: SiteContent;
+  activeImages: typeof clinicalIntelligenceImages;
+  onNavigate: PageNavigateHandler;
+  openService: number;
+  setOpenService: Dispatch<SetStateAction<number>>;
+}) {
+  return (
+    <>
+      <PageHero
+        page="services"
+        content={content}
+        image={activeImages.lab}
+        actions={[
+          {
+            label: content.pages.services.primaryCta,
+            href: getPagePath("contact"),
+            variant: "button--primary",
+            onClick: (event) => onNavigate("contact", event),
+          },
+          {
+            label: content.pages.services.secondaryCta,
+            href: getPagePath("patients"),
+            variant: "button--ghost",
+            onClick: (event) => onNavigate("patients", event),
+          },
+        ]}
+      />
+      <ServicesContent
+        content={content}
+        activeImages={activeImages}
+        openService={openService}
+        setOpenService={setOpenService}
+      />
+    </>
+  );
+}
+
+function ServicesContent({
+  content,
+  activeImages,
+  openService,
+  setOpenService,
+}: {
+  content: SiteContent;
+  activeImages: typeof clinicalIntelligenceImages;
+  openService: number;
+  setOpenService: Dispatch<SetStateAction<number>>;
+}) {
+  return (
+    <>
+      <section className="section services" id="services">
+        <motion.div
+          className="section-heading section-heading--split"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.28 }}
+          variants={revealStagger}
+        >
+          <div>
+            <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+              {content.services.eyebrow}
+            </motion.p>
+            <motion.h2 className="text-reveal" variants={revealMask}>
+              {content.services.heading}
+            </motion.h2>
+          </div>
+          <motion.p variants={revealUp}>{content.services.copy}</motion.p>
+        </motion.div>
+        <motion.div
+          className="capability-list"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.18 }}
+          variants={revealStagger}
+        >
+          {content.capabilities.map((item, index) => {
+            const Icon = item.icon;
+            const serviceId = `service-${item.eyebrow}`;
+            const isOpen = openService === index;
+
+            return (
+              <motion.article
+                className={`capability-row ${isOpen ? "is-open" : ""}`}
+                key={item.title}
+                variants={rowReveal}
+              >
+                <div className="capability-row__index">{item.eyebrow}</div>
+                <div className="capability-row__icon">
+                  <Icon size={23} aria-hidden="true" />
+                </div>
+                <div className="capability-row__main">
+                  <h3 className="capability-row__desktop-title">
+                    {item.title}
+                  </h3>
+                  <button
+                    className="capability-row__mobile-trigger"
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={`${serviceId}-details ${serviceId}-meta`}
+                    onClick={() =>
+                      setOpenService((current) =>
+                        current === index ? -1 : index,
+                      )
+                    }
+                  >
+                    <span className="capability-row__trigger-copy">
+                      <span>{item.title}</span>
+                      <span className="capability-row__risk-pill">
+                        {item.risk}
+                      </span>
+                    </span>
+                    <ChevronRight
+                      className="capability-row__mobile-chevron"
+                      size={18}
+                      aria-hidden="true"
+                    />
+                  </button>
+                  <div
+                    className="capability-row__details"
+                    id={`${serviceId}-details`}
+                  >
+                    <p>{item.copy}</p>
+                  </div>
+                </div>
+                <dl className="capability-row__meta" id={`${serviceId}-meta`}>
+                  <div>
+                    <dt>{content.services.deliverableLabel}</dt>
+                    <dd>{item.deliverable}</dd>
+                  </div>
+                  <div>
+                    <dt>{content.services.riskLabel}</dt>
+                    <dd>{item.risk}</dd>
+                  </div>
+                </dl>
+                <ChevronRight
+                  className="capability-row__desktop-chevron"
+                  size={22}
+                  aria-hidden="true"
+                />
+              </motion.article>
+            );
+          })}
+        </motion.div>
+      </section>
+
+      <WorkflowSection content={content.workflow} />
+
+      <section className="monitoring section" id="monitoring">
+        <motion.div
+          className="monitoring__copy"
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.35 }}
+          variants={revealStagger}
+        >
+          <motion.p className="eyebrow eyebrow--dark" variants={revealUp}>
+            {content.monitoring.eyebrow}
+          </motion.p>
+          <motion.h2 className="text-reveal" variants={revealMask}>
+            {content.monitoring.heading}
+          </motion.h2>
+          <motion.p variants={revealUp}>{content.monitoring.copy}</motion.p>
+          <motion.ul className="check-list" variants={revealStagger}>
+            {content.monitoring.signals.map((item) => (
+              <motion.li key={item} variants={rowReveal}>
+                <Check size={18} aria-hidden="true" />
+                {item}
+              </motion.li>
+            ))}
+          </motion.ul>
+        </motion.div>
+        <motion.div
+          className="monitoring__panel"
+          initial="hidden"
+          whileInView="show"
+          variants={revealImage}
+          viewport={{ once: true, amount: 0.35 }}
+        >
+          <ParallaxImage
+            src={activeImages.monitoring}
+            alt={content.monitoring.imageAlt}
+          />
+          <div className="panel-overlay">
+            <span>{content.monitoring.overlayLabel}</span>
+            <strong>{content.monitoring.overlayTitle}</strong>
+            <small>{content.monitoring.overlayCopy}</small>
+          </div>
+        </motion.div>
+      </section>
+    </>
+  );
+}
+
+function PatientsPage({
+  content,
+  activeImages,
+  onNavigate,
+}: {
+  content: SiteContent;
+  activeImages: typeof clinicalIntelligenceImages;
+  patientsImageStyle: CSSProperties;
+  onNavigate: PageNavigateHandler;
+}) {
+  return (
+    <>
+      <PageHero
+        page="patients"
+        content={content}
+        image={activeImages.patients}
+        actions={[
+          {
+            label: content.pages.patients.primaryCta,
+            href: "#patient-registration",
+            variant: "button--primary",
+          },
+          {
+            label: content.pages.patients.secondaryCta,
+            href: getPagePath("contact"),
+            variant: "button--ghost",
+            onClick: (event) => onNavigate("contact", event),
+          },
+        ]}
+      />
+      <PatientRecruitmentSection content={content.patientRegistration} />
+    </>
+  );
+}
+
+function InsightsPage({
+  content,
+  language,
+  activeImages,
+  onNavigate,
+}: {
+  content: SiteContent;
+  language: Language;
+  activeImages: typeof clinicalIntelligenceImages;
+  onNavigate: PageNavigateHandler;
+}) {
+  return (
+    <>
+      <PageHero
+        page="insights"
+        content={content}
+        image={activeImages.monitoring}
+        actions={[
+          {
+            label: content.pages.insights.primaryCta,
+            href: linkedInUrl,
+            variant: "button--primary",
+            target: "_blank",
+            rel: "noreferrer",
+            icon: <ExternalLink size={17} aria-hidden="true" />,
+          },
+          {
+            label: content.pages.insights.secondaryCta,
+            href: getPagePath("contact"),
+            variant: "button--ghost",
+            onClick: (event) => onNavigate("contact", event),
+          },
+        ]}
+      />
+      <LinkedInNewsSection content={content} language={language} />
+    </>
+  );
+}
+
+function ContactPage({
+  content,
+  activeImages,
+  onNavigate,
+}: {
+  content: SiteContent;
+  activeImages: typeof clinicalIntelligenceImages;
+  onNavigate: PageNavigateHandler;
+}) {
+  return (
+    <>
+      <PageHero
+        page="contact"
+        content={content}
+        image={activeImages.hero}
+        actions={[
+          {
+            label: content.pages.contact.primaryCta,
+            href: "mailto:x.verdina@theraresearch.com",
+            variant: "button--primary",
+            icon: <Mail size={17} aria-hidden="true" />,
+          },
+          {
+            label: content.pages.contact.secondaryCta,
+            href: getPagePath("services"),
+            variant: "button--ghost",
+            onClick: (event) => onNavigate("services", event),
+          },
+        ]}
+      />
+      <ContactSection content={content} />
+    </>
+  );
+}
+
+type PageHeroAction = {
+  label: string;
+  href: string;
+  variant: string;
+  onClick?: (event: ReactMouseEvent<HTMLAnchorElement>) => void;
+  target?: string;
+  rel?: string;
+  icon?: ReactNode;
+};
+
+function PageHero({
+  page,
+  content,
+  image,
+  actions,
+}: {
+  page: PageKey;
+  content: SiteContent;
+  image: string;
+  actions: PageHeroAction[];
+}) {
+  const pageContent = content.pages[page];
+  const currentNavLabel = content.navItems.find(
+    (item) => item.page === page,
+  )?.label;
+
+  return (
+    <section className={`page-hero page-hero--${page}`}>
+      <motion.img
+        className="page-hero__image"
+        src={image}
+        alt=""
+        aria-hidden="true"
+        initial={{ scale: 1.04, opacity: 0.86 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.72, ease: premiumEase }}
+      />
+      <div className="page-hero__shade" />
+      <motion.div
+        className="page-hero__content"
+        initial="hidden"
+        animate="show"
+        variants={revealStagger}
+      >
+        <motion.p className="eyebrow" variants={revealUp}>
+          {pageContent.eyebrow}
+        </motion.p>
+        <motion.h1
+          className="page-hero__title text-reveal"
+          variants={revealMask}
+        >
+          {pageContent.heading}
+        </motion.h1>
+        <motion.p className="page-hero__copy" variants={revealUp}>
+          {pageContent.copy}
+        </motion.p>
+        <motion.div className="page-hero__actions" variants={revealUp}>
+          {actions.map((action) => (
+            <MagneticButton
+              key={action.label}
+              href={action.href}
+              variant={action.variant}
+              onClick={action.onClick}
+              target={action.target}
+              rel={action.rel}
+            >
+              {action.label}
+              {action.icon ?? <ArrowRight size={17} aria-hidden="true" />}
+            </MagneticButton>
+          ))}
+        </motion.div>
+        {currentNavLabel && (
+          <motion.div className="page-hero__meta" variants={revealUp}>
+            <span>{currentNavLabel}</span>
+          </motion.div>
+        )}
+      </motion.div>
+    </section>
   );
 }
 
@@ -710,10 +1181,16 @@ function MagneticButton({
   href,
   variant,
   children,
+  onClick,
+  target,
+  rel,
 }: {
   href: string;
   variant: string;
   children: ReactNode;
+  onClick?: (event: ReactMouseEvent<HTMLAnchorElement>) => void;
+  target?: string;
+  rel?: string;
 }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -738,10 +1215,13 @@ function MagneticButton({
     <motion.a
       className={`button ${variant}`}
       href={href}
+      onClick={onClick}
+      target={target}
+      rel={rel}
       style={shouldReduceMotion ? undefined : { x, y }}
       onMouseMove={handleMouseMove}
       onMouseLeave={resetMotion}
-      whileTap={shouldReduceMotion ? undefined : { scale: 0.98 }}
+      whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
       transition={{ type: "spring", stiffness: 130, damping: 18 }}
     >
       {children}
@@ -1458,6 +1938,8 @@ function Header({
   setLanguage,
   content,
   isScrolled,
+  activePage,
+  onNavigate,
 }: {
   menuOpen: boolean;
   menuButtonRef: RefObject<HTMLButtonElement | null>;
@@ -1466,15 +1948,28 @@ function Header({
   setLanguage: (value: Language) => void;
   content: SiteContent;
   isScrolled: boolean;
+  activePage: PageKey;
+  onNavigate: PageNavigateHandler;
 }) {
   return (
     <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
-      <a className="brand" href="#home" aria-label={content.meta.homeAria}>
+      <a
+        className="brand"
+        href={getPagePath("home")}
+        aria-label={content.meta.homeAria}
+        onClick={(event) => onNavigate("home", event)}
+      >
         <BrandLogo tone="header" />
       </a>
       <nav className="desktop-nav" aria-label={content.meta.navAria}>
         {content.navItems.map((item) => (
-          <a key={item.href} href={item.href}>
+          <a
+            key={item.page}
+            className={activePage === item.page ? "is-active" : ""}
+            href={getPagePath(item.page)}
+            aria-current={activePage === item.page ? "page" : undefined}
+            onClick={(event) => onNavigate(item.page, event)}
+          >
             {item.label}
           </a>
         ))}
@@ -1532,12 +2027,16 @@ function MobileMenu({
   language,
   setLanguage,
   content,
+  activePage,
+  onNavigate,
 }: {
   onClose: () => void;
   returnFocusRef: RefObject<HTMLButtonElement | null>;
   language: Language;
   setLanguage: (value: Language) => void;
   content: SiteContent;
+  activePage: PageKey;
+  onNavigate: PageNavigateHandler;
 }) {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -1619,7 +2118,13 @@ function MobileMenu({
           ariaLabel={content.meta.languageAria}
         />
         {content.navItems.map((item) => (
-          <a key={item.href} href={item.href} onClick={onClose}>
+          <a
+            key={item.page}
+            className={activePage === item.page ? "is-active" : ""}
+            href={getPagePath(item.page)}
+            aria-current={activePage === item.page ? "page" : undefined}
+            onClick={(event) => onNavigate(item.page, event)}
+          >
             {item.label}
           </a>
         ))}
@@ -1640,14 +2145,21 @@ function MobileMenu({
   );
 }
 
-function Footer({ content }: { content: SiteContent }) {
+function Footer({
+  content,
+  onNavigate,
+}: {
+  content: SiteContent;
+  onNavigate: PageNavigateHandler;
+}) {
   return (
     <footer className="footer">
       <div>
         <a
           className="brand brand--footer"
-          href="#home"
+          href={getPagePath("home")}
           aria-label={content.meta.homeAria}
+          onClick={(event) => onNavigate("home", event)}
         >
           <BrandLogo tone="footer" />
         </a>
