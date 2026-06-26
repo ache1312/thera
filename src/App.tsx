@@ -23,9 +23,11 @@ import {
   ArrowRight,
   Check,
   ChevronRight,
+  ExternalLink,
   Mail,
   MapPin,
   Menu,
+  Newspaper,
   Phone,
   Send,
   X,
@@ -115,6 +117,8 @@ const pureWordmarkLogo = {
 };
 
 const logoScale = 1.02;
+const linkedInCompanyId = "15153372";
+const linkedInScriptId = "linkedin-platform-script";
 const linkedInUrl =
   "https://www.linkedin.com/company/theraresearch-ltda?trk=extra_biz_viewers_viewed";
 const patientFormAction =
@@ -129,6 +133,14 @@ type PatientFormField =
   | "diagnosed"
   | "diagnosis"
   | "consent";
+
+declare global {
+  interface Window {
+    IN?: {
+      parse?: (element?: HTMLElement | null) => void;
+    };
+  }
+}
 
 function isLanguage(value: unknown): value is Language {
   return value === "en" || value === "es";
@@ -529,6 +541,8 @@ function App() {
 
           <PatientRecruitmentSection content={content.patientRegistration} />
 
+          <LinkedInNewsSection content={content} language={language} />
+
           <ContactSection content={content} />
         </main>
 
@@ -546,6 +560,149 @@ function App() {
         </AnimatePresence>
       </div>
     </MotionConfig>
+  );
+}
+
+function LinkedInNewsSection({
+  content,
+  language,
+}: {
+  content: SiteContent;
+  language: Language;
+}) {
+  return (
+    <motion.section
+      className="linkedin-news section"
+      id="linkedin"
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.2 }}
+      variants={revealStagger}
+    >
+      <motion.div className="linkedin-news__intro" variants={revealUp}>
+        <span className="linkedin-news__intro-icon" aria-hidden="true">
+          <Newspaper size={22} />
+        </span>
+        <p className="eyebrow eyebrow--dark">{content.linkedin.eyebrow}</p>
+        <h2 className="text-reveal">{content.linkedin.heading}</h2>
+        <p>{content.linkedin.copy}</p>
+        <a
+          className="linkedin-news__page-link"
+          href={linkedInUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          <LinkedInIcon size={18} />
+          {content.linkedin.visitPage}
+          <ExternalLink size={16} aria-hidden="true" />
+        </a>
+      </motion.div>
+
+      <motion.div className="linkedin-news__follow" variants={revealImage}>
+        <span className="linkedin-news__icon" aria-hidden="true">
+          <LinkedInIcon size={24} />
+        </span>
+        <h3>{content.linkedin.followHeading}</h3>
+        <p>{content.linkedin.followCopy}</p>
+        <LinkedInFollowPlugin
+          language={language}
+          fallbackLabel={content.linkedin.followFallback}
+        />
+      </motion.div>
+
+      <motion.div
+        className="linkedin-news__highlights"
+        aria-label={content.linkedin.highlightsAria}
+        variants={revealStagger}
+      >
+        {content.linkedin.highlights.map((item, index) => (
+          <motion.article
+            className="linkedin-news__item"
+            key={item.title}
+            variants={rowReveal}
+          >
+            <span className="linkedin-news__item-index">
+              {String(index + 1).padStart(2, "0")}
+            </span>
+            <span className="linkedin-news__item-label">{item.label}</span>
+            <h3>{item.title}</h3>
+            <p>{item.copy}</p>
+            <a href={linkedInUrl} target="_blank" rel="noreferrer">
+              {item.cta}
+              <ArrowRight size={17} aria-hidden="true" />
+            </a>
+          </motion.article>
+        ))}
+      </motion.div>
+    </motion.section>
+  );
+}
+
+function LinkedInFollowPlugin({
+  language,
+  fallbackLabel,
+}: {
+  language: Language;
+  fallbackLabel: string;
+}) {
+  const pluginRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    function renderPlugin() {
+      if (!isMounted || !pluginRef.current) {
+        return;
+      }
+
+      pluginRef.current.innerHTML = "";
+      const followCompanyScript = document.createElement("script");
+      followCompanyScript.type = "IN/FollowCompany";
+      followCompanyScript.setAttribute("data-id", linkedInCompanyId);
+      followCompanyScript.setAttribute("data-counter", "bottom");
+      pluginRef.current.appendChild(followCompanyScript);
+      window.IN?.parse?.(pluginRef.current);
+    }
+
+    const existingScript = document.getElementById(
+      linkedInScriptId,
+    ) as HTMLScriptElement | null;
+
+    if (existingScript) {
+      if (window.IN?.parse) {
+        renderPlugin();
+      } else {
+        existingScript.addEventListener("load", renderPlugin, { once: true });
+      }
+
+      return () => {
+        isMounted = false;
+        existingScript.removeEventListener("load", renderPlugin);
+      };
+    }
+
+    const script = document.createElement("script");
+    script.id = linkedInScriptId;
+    script.src = "https://platform.linkedin.com/in.js";
+    script.type = "text/javascript";
+    script.text = `lang: ${language === "es" ? "es_ES" : "en_US"}`;
+    script.addEventListener("load", renderPlugin, { once: true });
+    document.body.appendChild(script);
+
+    return () => {
+      isMounted = false;
+      script.removeEventListener("load", renderPlugin);
+    };
+  }, [language]);
+
+  return (
+    <div className="linkedin-follow">
+      <div className="linkedin-follow__plugin" ref={pluginRef} />
+      <a href={linkedInUrl} target="_blank" rel="noreferrer">
+        <LinkedInIcon size={17} />
+        {fallbackLabel}
+      </a>
+    </div>
   );
 }
 

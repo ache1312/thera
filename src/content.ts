@@ -40,6 +40,7 @@ export const siteContent = {
       { label: "Workflow", href: "#workflow" },
       { label: "Monitoring", href: "#monitoring" },
       { label: "Patients", href: "#patient-registration" },
+      { label: "LinkedIn", href: "#linkedin" },
       { label: "Contact", href: "#contact" },
     ],
     hero: {
@@ -212,6 +213,37 @@ export const siteContent = {
       copy: "Thera Research understands participant demographics in each therapeutic area, how to enroll efficiently, how to identify high-enrolling sites, and how best to work with them.",
       cta: "Register interest",
     },
+    linkedin: {
+      eyebrow: "LinkedIn updates",
+      heading: "News and company activity from Thera Research.",
+      copy: "Follow the official LinkedIn page for company updates, patient recruitment notices, clinical research activity, and sponsor-facing announcements.",
+      followHeading: "Follow the official company page",
+      followCopy:
+        "The LinkedIn page is the live channel for current activity. The site keeps a curated path to the most relevant updates without depending on restricted feed access.",
+      followFallback: "Follow Thera Research",
+      visitPage: "Open LinkedIn page",
+      highlightsAria: "LinkedIn content highlights",
+      highlights: [
+        {
+          label: "Company news",
+          title: "Clinical research updates",
+          copy: "Announcements and professional activity from the Thera Research team are published through the official company page.",
+          cta: "View company updates",
+        },
+        {
+          label: "Patient recruitment",
+          title: "Recruitment notices",
+          copy: "Recruitment calls and study participation information can be followed from LinkedIn when new opportunities are shared.",
+          cta: "Follow recruitment posts",
+        },
+        {
+          label: "Clinical operations",
+          title: "Sponsor and site perspective",
+          copy: "LinkedIn adds a current channel for study execution notes, site dynamics, and clinical operations context.",
+          cta: "Go to LinkedIn",
+        },
+      ],
+    },
     patientRegistration: {
       aria: "Patient recruitment registration",
       eyebrow: "Patient recruitment",
@@ -349,6 +381,7 @@ export const siteContent = {
       { label: "Flujo", href: "#workflow" },
       { label: "Monitoreo", href: "#monitoring" },
       { label: "Pacientes", href: "#patient-registration" },
+      { label: "LinkedIn", href: "#linkedin" },
       { label: "Contacto", href: "#contact" },
     ],
     hero: {
@@ -526,6 +559,37 @@ export const siteContent = {
       heading: "Soporte de enrolamiento según la demografía del estudio.",
       copy: "Thera Research entiende la demografía de participantes en cada área terapéutica, cómo enrolar con eficiencia, cómo identificar centros de alto enrolamiento y cómo trabajar mejor con ellos.",
       cta: "Registrar interés",
+    },
+    linkedin: {
+      eyebrow: "Actualizaciones en LinkedIn",
+      heading: "Noticias y actividad de Thera Research.",
+      copy: "Sigue la página oficial de LinkedIn para ver novedades de la empresa, avisos de reclutamiento de pacientes, actividad de investigación clínica y anuncios para patrocinadores.",
+      followHeading: "Sigue la página oficial de la empresa",
+      followCopy:
+        "LinkedIn es el canal activo para la actividad reciente. El sitio mantiene una ruta curada hacia las actualizaciones más relevantes sin depender de acceso restringido al feed.",
+      followFallback: "Seguir a Thera Research",
+      visitPage: "Abrir página de LinkedIn",
+      highlightsAria: "Destacados de contenido en LinkedIn",
+      highlights: [
+        {
+          label: "Noticias de empresa",
+          title: "Actualizaciones de investigación clínica",
+          copy: "Los anuncios y la actividad profesional del equipo de Thera Research se publican desde la página oficial de la empresa.",
+          cta: "Ver actualizaciones",
+        },
+        {
+          label: "Reclutamiento de pacientes",
+          title: "Avisos de reclutamiento",
+          copy: "Las convocatorias de reclutamiento e información sobre participación en estudios pueden seguirse desde LinkedIn cuando se publiquen nuevas oportunidades.",
+          cta: "Seguir publicaciones",
+        },
+        {
+          label: "Operación clínica",
+          title: "Perspectiva para patrocinadores y centros",
+          copy: "LinkedIn agrega un canal actual para notas de ejecución de estudios, dinámica de centros y contexto operativo clínico.",
+          cta: "Ir a LinkedIn",
+        },
+      ],
     },
     patientRegistration: {
       aria: "Registro de reclutamiento de pacientes",

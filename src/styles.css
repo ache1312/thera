@@ -547,6 +547,7 @@ h3 {
 .section-heading--split > p,
 .monitoring__copy p,
 .patients__content p,
+.linkedin-news__intro p:not(.eyebrow),
 .contact-section__copy p,
 .footer p {
   color: var(--muted);
@@ -1117,6 +1118,158 @@ h3 {
   line-height: 1.42;
 }
 
+.linkedin-news {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(320px, 0.52fr);
+  gap: clamp(28px, 5vw, 72px);
+  align-items: start;
+}
+
+.linkedin-news__intro {
+  max-width: 760px;
+}
+
+.linkedin-news__intro-icon,
+.linkedin-news__icon {
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: var(--teal-dark);
+  background: rgba(25, 198, 216, 0.1);
+}
+
+.linkedin-news__intro-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 24px;
+}
+
+.linkedin-news__page-link,
+.linkedin-news__item a,
+.linkedin-follow a {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  gap: 9px;
+  color: var(--teal-dark);
+  font-weight: 820;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.linkedin-news__page-link {
+  margin-top: 18px;
+}
+
+.linkedin-news__page-link:hover,
+.linkedin-news__item a:hover,
+.linkedin-follow a:hover {
+  color: var(--ink);
+  transform: translateX(2px);
+}
+
+.linkedin-news__follow {
+  display: grid;
+  gap: 16px;
+  padding: clamp(22px, 3vw, 32px);
+  border: 1px solid var(--faint);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(228, 239, 233, 0.7), transparent 58%),
+    var(--surface);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.84),
+    0 28px 70px rgba(91, 73, 47, 0.1);
+}
+
+.linkedin-news__icon {
+  width: 46px;
+  height: 46px;
+}
+
+.linkedin-news__follow h3 {
+  max-width: 360px;
+}
+
+.linkedin-news__follow p,
+.linkedin-news__item p {
+  margin: 0;
+  color: rgba(24, 50, 56, 0.62);
+  line-height: 1.62;
+}
+
+.linkedin-follow {
+  display: grid;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.linkedin-follow__plugin {
+  min-height: 42px;
+}
+
+.linkedin-news__highlights {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: clamp(4px, 1.5vw, 16px);
+  border-top: 1px solid var(--faint);
+  border-left: 1px solid var(--faint);
+}
+
+.linkedin-news__item {
+  display: grid;
+  align-content: start;
+  min-height: 260px;
+  padding: clamp(22px, 3vw, 32px);
+  border-right: 1px solid var(--faint);
+  border-bottom: 1px solid var(--faint);
+  background: rgba(255, 252, 246, 0.2);
+  transition:
+    transform 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+  will-change: transform, opacity;
+}
+
+.linkedin-news__item:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 252, 246, 0.58);
+  box-shadow: 0 20px 58px rgba(91, 73, 47, 0.08);
+}
+
+.linkedin-news__item-index {
+  color: rgba(24, 50, 56, 0.42);
+  font-size: 0.72rem;
+  font-weight: 840;
+  font-variant-numeric: tabular-nums;
+}
+
+.linkedin-news__item-label {
+  width: fit-content;
+  margin: 26px 0 22px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  color: var(--teal-dark);
+  background: rgba(25, 198, 216, 0.1);
+  font-size: 0.7rem;
+  font-weight: 840;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.linkedin-news__item h3 {
+  max-width: 320px;
+}
+
+.linkedin-news__item a {
+  align-self: end;
+  margin-top: 28px;
+}
+
 .contact-section {
   display: grid;
   grid-template-columns: minmax(0, 0.82fr) minmax(360px, 0.78fr);
@@ -1573,6 +1726,7 @@ h3 {
   .intro,
   .monitoring,
   .patient-registration,
+  .linkedin-news,
   .contact-section,
   .patients,
   .footer {
@@ -1592,6 +1746,14 @@ h3 {
   .patient-registration__intro,
   .contact-section__copy {
     position: static;
+  }
+
+  .linkedin-news__intro {
+    max-width: 720px;
+  }
+
+  .linkedin-news__follow {
+    max-width: 560px;
   }
 
   .proof-grid {
@@ -1758,6 +1920,7 @@ h3 {
 
   .workflow__steps,
   .proof-grid,
+  .linkedin-news__highlights,
   .form-grid,
   .patient-form__grid {
     grid-template-columns: 1fr;
@@ -1773,6 +1936,10 @@ h3 {
 
   .proof-item {
     min-height: 220px;
+  }
+
+  .linkedin-news__item {
+    min-height: auto;
   }
 
   .patients {
