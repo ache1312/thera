@@ -8,6 +8,7 @@ Generated on 2026-06-26.
 - `imagegen-stacked-premium/`: direct `imagegen` stacked explorations with `Thera` above `Research`.
 - `imagegen-wordmark-fidelity/`: `imagegen` wordmark explorations recomposed with the original active left symbol. Use this folder for the brief that requires 100% fidelity on the symbol and creative variants for `Thera Research`.
 - `imagegen-stacked-wordmark-fidelity/`: corrected two-line `imagegen` wordmark explorations, with `Thera` above `Research`, recomposed with the original active left symbol.
+- `symbol-blue-emerald-colorways/`: three blue/emerald recolors of the original left symbol. The symbol alpha is preserved pixel-for-pixel; only RGB colors change.
 - `fidelity-wordmarks/`: production-oriented transparent PNGs. These preserve the current active left symbol from `public/assets/logos/pure-wordmark-*.png` and replace only the right wordmark with real rendered text.
 - `fidelity-wordmarks-stacked/`: two-line wordmark versions with `Thera` above `Research`. These also preserve the current active left symbol pixel-for-pixel.
 
@@ -21,6 +22,9 @@ Generated on 2026-06-26.
 - `imagegen-wordmark-fidelity/contact-sheet-imagegen-fidelity-white.png`
 - `imagegen-stacked-wordmark-fidelity/contact-sheet-imagegen-stacked-fidelity-ink.png`
 - `imagegen-stacked-wordmark-fidelity/contact-sheet-imagegen-stacked-fidelity-white.png`
+- `symbol-blue-emerald-colorways/contact-sheet-symbol-colorways.png`
+- `symbol-blue-emerald-colorways/contact-sheet-logo-colorways-ink.png`
+- `symbol-blue-emerald-colorways/contact-sheet-logo-colorways-white.png`
 - `imagegen-stacked-premium/contact-sheet-imagegen-stacked-premium.png`
 - `imagegen-explorations/contact-sheet-imagegen.png`
 

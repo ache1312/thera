@@ -1,0 +1,4 @@
+Shape fidelity: PASS
+Source symbol: public/assets/logos/pure-wordmark-footer.png crop x=0 y=0 w=400 h=400
+Validation method: output alpha channel equals the original symbol alpha channel pixel-for-pixel.
+Generated variants: 3 blue/emerald colorways, no geometry edits, no new components.
