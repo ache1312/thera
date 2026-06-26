@@ -1,0 +1,6 @@
+Selected color source: symbol-blue-emerald-colorways/logos/02-cobalt-emerald-gradient-logo-white-wordmark.png
+Applied: only the cobalt/emerald symbol colors were reused.
+Text: two-line stacked white wordmark from imagegen-stacked-wordmark-fidelity/final/02-stacked-humanist-modern-white.png.
+Standard PNG: (1361, 400), transparent canvas.
+Cropped PNG: (1125, 400), bbox=(2, 0, 1127, 400).
+Symbol shape fidelity: PASS, alpha matches original symbol pixel-for-pixel.

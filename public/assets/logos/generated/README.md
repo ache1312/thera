@@ -10,6 +10,7 @@ Generated on 2026-06-26.
 - `imagegen-stacked-wordmark-fidelity/`: corrected two-line `imagegen` wordmark explorations, with `Thera` above `Research`, recomposed with the original active left symbol.
 - `symbol-blue-emerald-colorways/`: three blue/emerald recolors of the original left symbol. The symbol alpha is preserved pixel-for-pixel; only RGB colors change.
 - `symbol-two-tone-stacked/`: corrected two-tone symbol variants. The serpent uses one solid color, the rest of the symbol uses one solid color, and the logo previews use a two-line `Thera` / `Research` wordmark.
+- `selected-cobalt-emerald-stacked/`: selected logo using the cobalt/emerald colors from `02-cobalt-emerald-gradient-logo-white-wordmark` and a two-line white `Thera` / `Research` wordmark. Includes a cropped transparent PNG.
 - `fidelity-wordmarks/`: production-oriented transparent PNGs. These preserve the current active left symbol from `public/assets/logos/pure-wordmark-*.png` and replace only the right wordmark with real rendered text.
 - `fidelity-wordmarks-stacked/`: two-line wordmark versions with `Thera` above `Research`. These also preserve the current active left symbol pixel-for-pixel.
 
@@ -29,6 +30,7 @@ Generated on 2026-06-26.
 - `symbol-two-tone-stacked/contact-sheet-symbol-two-tone.png`
 - `symbol-two-tone-stacked/contact-sheet-stacked-two-tone-ink.png`
 - `symbol-two-tone-stacked/contact-sheet-stacked-two-tone-white.png`
+- `selected-cobalt-emerald-stacked/thera-cobalt-emerald-stacked-white-cropped.png`
 - `imagegen-stacked-premium/contact-sheet-imagegen-stacked-premium.png`
 - `imagegen-explorations/contact-sheet-imagegen.png`
 
