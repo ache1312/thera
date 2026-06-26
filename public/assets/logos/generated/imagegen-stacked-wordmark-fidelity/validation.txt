@@ -1,0 +1,4 @@
+Icon fidelity: PASS
+Final canvas: 1361x400 transparent PNG
+Left symbol crop: x=0 y=0 w=400 h=400 copied from active pure wordmark assets with pixel-perfect verification.
+Wordmark treatment: two-line stacked imagegen output: Thera above Research. Chroma-key removed and recolored for controlled ink/white variants.
