@@ -1,0 +1,5 @@
+Shape fidelity: PASS
+Source symbol: public/assets/logos/pure-wordmark-footer.png crop x=0 y=0 w=400 h=400
+Validation method: final symbol alpha equals original symbol alpha pixel-for-pixel.
+Color rule: visible symbol pixels use exactly two solid RGB colors: one for the serpent mask and one for the rest mask.
+Text rule: logos use the existing stacked wordmark source with Thera above Research.
