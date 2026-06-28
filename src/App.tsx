@@ -27,11 +27,13 @@ import {
   Check,
   ChevronRight,
   ExternalLink,
+  ImageIcon,
   Mail,
   MapPin,
   Menu,
   Newspaper,
   Phone,
+  PlayCircle,
   Send,
   X,
 } from "lucide-react";
@@ -124,6 +126,8 @@ const linkedInCompanyId = "15153372";
 const linkedInScriptId = "linkedin-platform-script";
 const linkedInUrl =
   "https://www.linkedin.com/company/theraresearch-ltda?trk=extra_biz_viewers_viewed";
+const linkedInVideoPattern =
+  /video|conversation|conversaci[oó]n|chapter|cap[ií]tulo/i;
 const patientFormAction =
   "https://docs.google.com/forms/d/e/1FAIpQLSeQtFC6Eptj0kx4aBSH5RakAoFBMOZG3EXMR3EJzH5v7l3Cvw/formResponse";
 const languageStorageKey = "thera-language";
@@ -141,6 +145,7 @@ type PageNavigateHandler = (
   page: PageKey,
   event?: ReactMouseEvent<HTMLAnchorElement>,
 ) => void;
+type LinkedInPost = SiteContent["linkedin"]["posts"][number];
 
 type PatientFormField =
   | "firstName"
@@ -150,6 +155,27 @@ type PatientFormField =
   | "diagnosed"
   | "diagnosis"
   | "consent";
+
+function getLinkedInPostMediaSrc(index: number) {
+  return assetPath(
+    `assets/linkedin/post-${String(index + 1).padStart(2, "0")}.webp`,
+  );
+}
+
+function isLinkedInVideoPost(item: LinkedInPost) {
+  return (
+    item.tags.some((tag) => tag.toLowerCase() === "video") ||
+    linkedInVideoPattern.test(`${item.title} ${item.copy}`)
+  );
+}
+
+function linkedInMetricLabel(
+  value: string,
+  singular: string,
+  plural: string,
+) {
+  return Number(value) === 1 ? singular : plural;
+}
 
 declare global {
   interface Window {
@@ -1075,6 +1101,20 @@ function LinkedInNewsSection({
         </span>
         <h3>{content.linkedin.followHeading}</h3>
         <p>{content.linkedin.followCopy}</p>
+        <dl className="linkedin-news__source">
+          <div>
+            <dt>{content.linkedin.sourceLabel}</dt>
+            <dd>{content.linkedin.sourceValue}</dd>
+          </div>
+          <div>
+            <dt>{content.linkedin.reviewedLabel}</dt>
+            <dd>{content.linkedin.reviewedValue}</dd>
+          </div>
+          <div>
+            <dt>{content.linkedin.countLabel}</dt>
+            <dd>{content.linkedin.countValue}</dd>
+          </div>
+        </dl>
         <LinkedInFollowPlugin
           language={language}
           fallbackLabel={content.linkedin.followFallback}
@@ -1082,28 +1122,94 @@ function LinkedInNewsSection({
       </motion.div>
 
       <motion.div
-        className="linkedin-news__highlights"
-        aria-label={content.linkedin.highlightsAria}
+        className="linkedin-news__archive"
+        aria-label={content.linkedin.postsAria}
         variants={revealStagger}
       >
-        {content.linkedin.highlights.map((item, index) => (
-          <motion.article
-            className="linkedin-news__item"
-            key={item.title}
-            variants={rowReveal}
-          >
-            <span className="linkedin-news__item-index">
-              {String(index + 1).padStart(2, "0")}
-            </span>
-            <span className="linkedin-news__item-label">{item.label}</span>
-            <h3>{item.title}</h3>
-            <p>{item.copy}</p>
-            <a href={linkedInUrl} target="_blank" rel="noreferrer">
-              {item.cta}
-              <ArrowRight size={17} aria-hidden="true" />
-            </a>
-          </motion.article>
-        ))}
+        {content.linkedin.posts.map((item, index) => {
+          const itemNumber = String(index + 1).padStart(2, "0");
+          const mediaIsVideo = isLinkedInVideoPost(item);
+
+          return (
+            <motion.article
+              className="linkedin-news__item"
+              key={item.url}
+              variants={rowReveal}
+            >
+              <div className="linkedin-news__item-head">
+                <span className="linkedin-news__item-index">{itemNumber}</span>
+                <span className="linkedin-news__item-date">{item.date}</span>
+              </div>
+              <a
+                className="linkedin-news__media"
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`${content.linkedin.postCta}: ${item.title}`}
+              >
+                <img
+                  src={getLinkedInPostMediaSrc(index)}
+                  alt={item.title}
+                  width="960"
+                  height="540"
+                  loading="eager"
+                  decoding="async"
+                />
+                <span className="linkedin-news__media-label">
+                  {mediaIsVideo ? (
+                    <PlayCircle size={14} aria-hidden="true" />
+                  ) : (
+                    <ImageIcon size={14} aria-hidden="true" />
+                  )}
+                  {mediaIsVideo
+                    ? content.linkedin.videoLabel
+                    : content.linkedin.imageLabel}
+                </span>
+              </a>
+              <div className="linkedin-news__item-body">
+                <span className="linkedin-news__item-label">{item.label}</span>
+                <h3>{item.title}</h3>
+                <p>{item.copy}</p>
+                <ul className="linkedin-news__tags" aria-label={item.title}>
+                  {item.tags.map((tag) => (
+                    <li key={tag}>{tag}</li>
+                  ))}
+                </ul>
+              </div>
+              <div className="linkedin-news__item-foot">
+                {(item.reactions || item.comments) && (
+                  <div className="linkedin-news__metrics" aria-hidden="true">
+                    {item.reactions && (
+                      <span>
+                        {item.reactions}{" "}
+                        {linkedInMetricLabel(
+                          item.reactions,
+                          content.linkedin.reactionLabel,
+                          content.linkedin.reactionsLabel,
+                        )}
+                      </span>
+                    )}
+                    {item.comments && (
+                      <span>
+                        {item.comments}{" "}
+                        {linkedInMetricLabel(
+                          item.comments,
+                          content.linkedin.commentLabel,
+                          content.linkedin.commentsLabel,
+                        )}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <a href={item.url} target="_blank" rel="noreferrer">
+                  <LinkedInIcon size={17} />
+                  {content.linkedin.postCta}
+                  <ExternalLink size={15} aria-hidden="true" />
+                </a>
+              </div>
+            </motion.article>
+          );
+        })}
       </motion.div>
     </motion.section>
   );
