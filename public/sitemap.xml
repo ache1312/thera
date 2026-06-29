@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <url>
+    <loc>https://theraresearch.com/es/</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/en/</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/es/servicios</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/servicios" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/services" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/servicios" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/en/services</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/servicios" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/services" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/servicios" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/es/pacientes</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/pacientes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/patients" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/pacientes" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/en/patients</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/pacientes" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/patients" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/pacientes" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/es/noticias</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/noticias" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/noticias" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/en/insights</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/noticias" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/insights" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/noticias" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/es/contacto</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/contacto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/contacto" />
+  </url>
+  <url>
+    <loc>https://theraresearch.com/en/contact</loc>
+    <lastmod>2026-06-29</lastmod>
+    <xhtml:link rel="alternate" hreflang="es" href="https://theraresearch.com/es/contacto" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://theraresearch.com/en/contact" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://theraresearch.com/es/contacto" />
+  </url>
+</urlset>

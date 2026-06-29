@@ -44,74 +44,84 @@ import {
   type Language,
   type SiteContent,
 } from "./content";
+import seoConfigData from "./seo-config.json";
 
 const assetPath = (path: string) => `${import.meta.env.BASE_URL}${path}`;
-const premiumEase: [number, number, number, number] = [0.16, 1, 0.3, 1];
+const premiumEase: [number, number, number, number] = [0.19, 1, 0.22, 1];
 
 const heroFadeUp: Variants = {
-  hidden: { opacity: 0, y: 22 },
+  hidden: { opacity: 0, y: 16, filter: "blur(6px)" },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.72, ease: premiumEase },
+    filter: "blur(0px)",
+    transition: { duration: 0.74, ease: premiumEase },
   },
 };
 
 const revealUp: Variants = {
-  hidden: { opacity: 0.62, y: 18 },
+  hidden: { opacity: 0, y: 12, filter: "blur(4px)" },
   show: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: { duration: 0.58, ease: premiumEase },
   },
 };
 
 const revealMask: Variants = {
   hidden: {
-    opacity: 0.72,
-    y: 18,
+    opacity: 0,
+    y: 10,
+    filter: "blur(5px)",
   },
   show: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: { duration: 0.62, ease: premiumEase },
   },
 };
 
 const revealImage: Variants = {
   hidden: {
-    opacity: 0.82,
-    y: 22,
-    scale: 0.995,
+    opacity: 0,
+    y: 18,
+    scale: 0.985,
+    filter: "blur(6px)",
   },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.68, ease: premiumEase },
+    filter: "blur(0px)",
+    transition: { duration: 0.72, ease: premiumEase },
   },
 };
 
 const revealStagger: Variants = {
   hidden: {},
   show: {
-    transition: { staggerChildren: 0.085, delayChildren: 0.05 },
+    transition: { staggerChildren: 0.075, delayChildren: 0.04 },
   },
 };
 
 const rowReveal: Variants = {
-  hidden: { opacity: 0.7, y: 16 },
+  hidden: { opacity: 0, y: 12, filter: "blur(3px)" },
   show: {
     opacity: 1,
     y: 0,
+    filter: "blur(0px)",
     transition: { duration: 0.54, ease: premiumEase },
   },
 };
 
 const workflowStepReveal: Variants = {
-  hidden: { y: 16 },
+  hidden: { opacity: 0, y: 12, scale: 0.992 },
   show: {
+    opacity: 1,
     y: 0,
+    scale: 1,
     transition: { duration: 0.54, ease: premiumEase },
   },
 };
@@ -126,20 +136,50 @@ const linkedInCompanyId = "15153372";
 const linkedInScriptId = "linkedin-platform-script";
 const linkedInUrl =
   "https://www.linkedin.com/company/theraresearch-ltda?trk=extra_biz_viewers_viewed";
+// PLACEHOLDER — set the real WhatsApp Business number in E.164 digits only (e.g. "56912345678").
+// While empty, the WhatsApp affordance stays hidden instead of rendering a dead link.
+const WHATSAPP_NUMBER = "";
+const whatsappUrl = WHATSAPP_NUMBER ? `https://wa.me/${WHATSAPP_NUMBER}` : null;
+// PLACEHOLDER — primary contact inbox used by the header CTA / direct contact links.
+const contactEmail = "x.verdina@theraresearch.com";
 const linkedInVideoPattern =
   /video|conversation|conversaci[oó]n|chapter|cap[ií]tulo/i;
 const patientFormAction =
   "https://docs.google.com/forms/d/e/1FAIpQLSeQtFC6Eptj0kx4aBSH5RakAoFBMOZG3EXMR3EJzH5v7l3Cvw/formResponse";
 const languageStorageKey = "thera-language";
-const pageRoutes = {
-  home: "/",
-  services: "/services",
-  patients: "/patients",
-  insights: "/insights",
-  contact: "/contact",
-} as const;
+const pageKeys = ["home", "services", "patients", "insights", "contact"] as const;
+type PageKey = (typeof pageKeys)[number];
 
-type PageKey = keyof typeof pageRoutes;
+type SeoPage = {
+  title: string;
+  description: string;
+  ogTitle: string;
+  ogDescription: string;
+};
+
+type SeoConfig = {
+  siteUrl: string;
+  siteName: string;
+  defaultLanguage: Language;
+  lastmod: string;
+  linkedInUrl: string;
+  contactEmail: string;
+  logo: string;
+  socialImage: string;
+  routes: Record<Language, Record<PageKey, string>>;
+  legacyRoutes: Record<PageKey, string>;
+  pages: Record<Language, Record<PageKey, SeoPage>>;
+};
+
+type RouteState = {
+  language: Language;
+  page: PageKey;
+  isLegacy: boolean;
+};
+
+const seoConfig = seoConfigData as SeoConfig;
+const seoLanguages = ["es", "en"] as const satisfies readonly Language[];
+const defaultLanguage = seoConfig.defaultLanguage;
 type MotionImageStyle = ComponentProps<typeof motion.img>["style"];
 type PageNavigateHandler = (
   page: PageKey,
@@ -189,65 +229,310 @@ function isLanguage(value: unknown): value is Language {
   return value === "en" || value === "es";
 }
 
-function getInitialLanguage(): Language {
-  if (typeof window === "undefined") {
-    return "en";
-  }
-
-  const storedLanguage = window.localStorage.getItem(languageStorageKey);
-  if (isLanguage(storedLanguage)) {
-    return storedLanguage;
-  }
-
-  return window.navigator.language.toLowerCase().startsWith("es") ? "es" : "en";
-}
-
 function getBasePath() {
   const base = import.meta.env.BASE_URL;
   return base.endsWith("/") ? base.slice(0, -1) : base;
 }
 
-function getPagePath(page: PageKey) {
-  const base = getBasePath();
-  return `${base}${pageRoutes[page]}` || "/";
-}
-
-function getPageFromLocation(): PageKey {
-  if (typeof window === "undefined") {
-    return "home";
-  }
-
-  const base = getBasePath();
-  let pathname = window.location.pathname;
-
-  if (base && pathname.startsWith(base)) {
-    pathname = pathname.slice(base.length) || "/";
-  }
-
+function normalizeRoutePath(pathname: string) {
   if (!pathname.startsWith("/")) {
     pathname = `/${pathname}`;
   }
 
-  const match = Object.entries(pageRoutes).find(
-    ([, route]) => route === pathname,
+  const trimmed = pathname.replace(/\/+$/, "");
+  return trimmed || "/";
+}
+
+function stripBasePath(pathname: string) {
+  const base = getBasePath();
+
+  if (base && pathname.startsWith(base)) {
+    return pathname.slice(base.length) || "/";
+  }
+
+  return pathname;
+}
+
+function routeMatches(pathname: string, route: string) {
+  return normalizeRoutePath(pathname) === normalizeRoutePath(route);
+}
+
+function getRouteStateFromPathname(pathname: string): RouteState {
+  const path = normalizeRoutePath(stripBasePath(pathname));
+
+  for (const language of seoLanguages) {
+    for (const page of pageKeys) {
+      if (routeMatches(path, seoConfig.routes[language][page])) {
+        return { language, page, isLegacy: false };
+      }
+    }
+  }
+
+  for (const page of pageKeys) {
+    if (routeMatches(path, seoConfig.legacyRoutes[page])) {
+      return {
+        language: page === "home" ? defaultLanguage : "en",
+        page,
+        isLegacy: true,
+      };
+    }
+  }
+
+  return { language: defaultLanguage, page: "home", isLegacy: true };
+}
+
+function getRouteStateFromLocation(): RouteState {
+  if (typeof window === "undefined") {
+    return { language: defaultLanguage, page: "home", isLegacy: false };
+  }
+
+  return getRouteStateFromPathname(window.location.pathname);
+}
+
+function getPagePath(page: PageKey, language: Language = defaultLanguage) {
+  const base = getBasePath();
+  return `${base}${seoConfig.routes[language][page]}` || "/";
+}
+
+function getAbsoluteUrl(path: string) {
+  return `${seoConfig.siteUrl}${path}`;
+}
+
+function getAbsoluteAssetUrl(path: string) {
+  if (/^https?:\/\//i.test(path)) {
+    return path;
+  }
+
+  return `${seoConfig.siteUrl}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function getCanonicalPath(language: Language, page: PageKey) {
+  return seoConfig.routes[language][page];
+}
+
+function getXDefaultPath(page: PageKey) {
+  return page === "home"
+    ? seoConfig.legacyRoutes.home
+    : seoConfig.routes[defaultLanguage][page];
+}
+
+function getLocale(language: Language) {
+  return language === "es" ? "es_CL" : "en_US";
+}
+
+function buildStructuredData(language: Language, page: PageKey) {
+  const canonicalPath = getCanonicalPath(language, page);
+  const pageSeo = seoConfig.pages[language][page];
+  const canonicalUrl = getAbsoluteUrl(canonicalPath);
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": `${seoConfig.siteUrl}/#organization`,
+        name: seoConfig.siteName,
+        legalName: "Thera Research Ltda.",
+        url: seoConfig.siteUrl,
+        logo: getAbsoluteAssetUrl(seoConfig.logo),
+        description:
+          "Clinical Research Organization supporting clinical trial operations, monitoring, site activation, regulatory coordination, and patient recruitment in Chile.",
+        email: seoConfig.contactEmail,
+        areaServed: {
+          "@type": "Country",
+          name: "Chile",
+        },
+        knowsAbout: [
+          "Clinical trial management",
+          "Clinical monitoring",
+          "Patient recruitment",
+          "Site activation",
+          "Regulatory coordination",
+          "Clinical research operations",
+        ],
+        sameAs: [seoConfig.linkedInUrl],
+      },
+      {
+        "@type": "WebSite",
+        "@id": `${seoConfig.siteUrl}/#website`,
+        url: seoConfig.siteUrl,
+        name: seoConfig.siteName,
+        inLanguage: language,
+        publisher: {
+          "@id": `${seoConfig.siteUrl}/#organization`,
+        },
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${canonicalUrl}#webpage`,
+        url: canonicalUrl,
+        name: pageSeo.title,
+        description: pageSeo.description,
+        inLanguage: language,
+        isPartOf: {
+          "@id": `${seoConfig.siteUrl}/#website`,
+        },
+        about: {
+          "@id": `${seoConfig.siteUrl}/#organization`,
+        },
+      },
+    ],
+  };
+}
+
+function upsertMeta(selector: string, attributes: Record<string, string>) {
+  let element = document.head.querySelector<HTMLMetaElement>(selector);
+
+  if (!element) {
+    element = document.createElement("meta");
+    document.head.appendChild(element);
+  }
+
+  Object.entries(attributes).forEach(([name, value]) => {
+    element?.setAttribute(name, value);
+  });
+}
+
+function upsertLink(selector: string, attributes: Record<string, string>) {
+  let element = document.head.querySelector<HTMLLinkElement>(selector);
+
+  if (!element) {
+    element = document.createElement("link");
+    document.head.appendChild(element);
+  }
+
+  Object.entries(attributes).forEach(([name, value]) => {
+    element?.setAttribute(name, value);
+  });
+}
+
+function syncDocumentSeo(language: Language, page: PageKey) {
+  const pageSeo = seoConfig.pages[language][page];
+  const canonicalPath = getCanonicalPath(language, page);
+  const canonicalUrl = getAbsoluteUrl(canonicalPath);
+  const socialImageUrl = getAbsoluteAssetUrl(seoConfig.socialImage);
+  const alternateLanguage = language === "es" ? "en" : "es";
+
+  document.title = pageSeo.title;
+  document.documentElement.lang = language;
+
+  upsertMeta('meta[name="description"]', {
+    name: "description",
+    content: pageSeo.description,
+  });
+  upsertMeta('meta[name="robots"]', {
+    name: "robots",
+    content: "index, follow",
+  });
+  upsertMeta('meta[property="og:site_name"]', {
+    property: "og:site_name",
+    content: seoConfig.siteName,
+  });
+  upsertMeta('meta[property="og:type"]', {
+    property: "og:type",
+    content: "website",
+  });
+  upsertMeta('meta[property="og:locale"]', {
+    property: "og:locale",
+    content: getLocale(language),
+  });
+  upsertMeta('meta[property="og:url"]', {
+    property: "og:url",
+    content: canonicalUrl,
+  });
+  upsertMeta('meta[property="og:title"]', {
+    property: "og:title",
+    content: pageSeo.ogTitle,
+  });
+  upsertMeta('meta[property="og:description"]', {
+    property: "og:description",
+    content: pageSeo.ogDescription,
+  });
+  upsertMeta('meta[property="og:image"]', {
+    property: "og:image",
+    content: socialImageUrl,
+  });
+  upsertMeta('meta[property="og:image:alt"]', {
+    property: "og:image:alt",
+    content: `${seoConfig.siteName} clinical research operations`,
+  });
+  upsertMeta('meta[name="twitter:card"]', {
+    name: "twitter:card",
+    content: "summary_large_image",
+  });
+  upsertMeta('meta[name="twitter:title"]', {
+    name: "twitter:title",
+    content: pageSeo.ogTitle,
+  });
+  upsertMeta('meta[name="twitter:description"]', {
+    name: "twitter:description",
+    content: pageSeo.ogDescription,
+  });
+  upsertMeta('meta[name="twitter:image"]', {
+    name: "twitter:image",
+    content: socialImageUrl,
+  });
+
+  upsertLink('link[rel="canonical"]', {
+    rel: "canonical",
+    href: canonicalUrl,
+  });
+
+  document
+    .querySelectorAll('link[data-seo-alternate="true"]')
+    .forEach((node) => node.remove());
+
+  for (const alternate of seoLanguages) {
+    const link = document.createElement("link");
+    link.rel = "alternate";
+    link.hreflang = alternate;
+    link.href = getAbsoluteUrl(seoConfig.routes[alternate][page]);
+    link.dataset.seoAlternate = "true";
+    document.head.appendChild(link);
+  }
+
+  const xDefault = document.createElement("link");
+  xDefault.rel = "alternate";
+  xDefault.hreflang = "x-default";
+  xDefault.href = getAbsoluteUrl(getXDefaultPath(page));
+  xDefault.dataset.seoAlternate = "true";
+  document.head.appendChild(xDefault);
+
+  upsertMeta('meta[property="og:locale:alternate"]', {
+    property: "og:locale:alternate",
+    content: getLocale(alternateLanguage),
+  });
+
+  let structuredData = document.querySelector<HTMLScriptElement>(
+    "#thera-structured-data",
   );
 
-  return (match?.[0] as PageKey | undefined) ?? "home";
+  if (!structuredData) {
+    structuredData = document.createElement("script");
+    structuredData.id = "thera-structured-data";
+    structuredData.type = "application/ld+json";
+    document.head.appendChild(structuredData);
+  }
+
+  structuredData.text = JSON.stringify(buildStructuredData(language, page));
 }
 
 function App() {
+  const initialRouteState = getRouteStateFromLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [openService, setOpenService] = useState(0);
-  const [language, setLanguage] = useState<Language>(getInitialLanguage);
-  const [page, setPage] = useState<PageKey>(getPageFromLocation);
+  const [language, setLanguageState] = useState<Language>(
+    initialRouteState.language,
+  );
+  const [page, setPage] = useState<PageKey>(initialRouteState.page);
   const [isHeaderScrolled, setIsHeaderScrolled] = useState(false);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const content = siteContent[language];
   const activeImages = clinicalIntelligenceImages;
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll();
-  const heroScale = useTransform(scrollYProgress, [0, 0.34], [1, 1.07]);
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.32], [1, 0.62]);
+  const heroScale = useTransform(scrollYProgress, [0, 0.34], [1, 1.035]);
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.32], [1, 0.78]);
   const heroImageStyle = shouldReduceMotion
     ? { scale: 1, opacity: 1 }
     : { scale: heroScale, opacity: heroOpacity };
@@ -265,13 +550,15 @@ function App() {
   }, [menuOpen]);
 
   useEffect(() => {
-    document.documentElement.lang = language;
+    syncDocumentSeo(language, page);
     window.localStorage.setItem(languageStorageKey, language);
-  }, [language]);
+  }, [language, page]);
 
   useEffect(() => {
     function handlePopState() {
-      setPage(getPageFromLocation());
+      const nextRoute = getRouteStateFromLocation();
+      setLanguageState(nextRoute.language);
+      setPage(nextRoute.page);
       window.requestAnimationFrame(() => window.scrollTo({ top: 0 }));
     }
 
@@ -310,19 +597,38 @@ function App() {
     event?: ReactMouseEvent<HTMLAnchorElement>,
   ) {
     event?.preventDefault();
+    const targetPath = getPagePath(nextPage, language);
 
     if (nextPage === page) {
+      if (
+        !routeMatches(
+          stripBasePath(window.location.pathname),
+          stripBasePath(targetPath),
+        )
+      ) {
+        window.history.pushState({}, "", targetPath);
+      }
       setMenuOpen(false);
       window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" });
       return;
     }
 
-    window.history.pushState({}, "", getPagePath(nextPage));
+    window.history.pushState({}, "", targetPath);
     setPage(nextPage);
     setMenuOpen(false);
     window.requestAnimationFrame(() =>
       window.scrollTo({ top: 0, behavior: shouldReduceMotion ? "auto" : "smooth" }),
     );
+  }
+
+  function changeLanguage(nextLanguage: Language) {
+    if (nextLanguage === language) {
+      return;
+    }
+
+    window.history.pushState({}, "", getPagePath(page, nextLanguage));
+    setLanguageState(nextLanguage);
+    setMenuOpen(false);
   }
 
   return (
@@ -336,7 +642,7 @@ function App() {
           menuButtonRef={menuButtonRef}
           setMenuOpen={setMenuOpen}
           language={language}
-          setLanguage={setLanguage}
+          setLanguage={changeLanguage}
           content={content}
           isScrolled={isHeaderScrolled}
           activePage={page}
@@ -348,10 +654,22 @@ function App() {
             className={`page-main page-main--${page}`}
             tabIndex={-1}
             key={page}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-            animate={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
-            exit={shouldReduceMotion ? undefined : { opacity: 0, y: -10 }}
-            transition={{ duration: 0.42, ease: premiumEase }}
+            initial={
+              shouldReduceMotion
+                ? false
+                : { opacity: 0, y: 10, filter: "blur(4px)" }
+            }
+            animate={
+              shouldReduceMotion
+                ? undefined
+                : { opacity: 1, y: 0, filter: "blur(0px)" }
+            }
+            exit={
+              shouldReduceMotion
+                ? undefined
+                : { opacity: 0, y: -6, filter: "blur(3px)" }
+            }
+            transition={{ duration: 0.36, ease: premiumEase }}
           >
             {page === "home" && (
               <HomePage
@@ -359,6 +677,7 @@ function App() {
                 activeImages={activeImages}
                 heroImageStyle={heroImageStyle}
                 patientsImageStyle={patientsImageStyle}
+                language={language}
                 onNavigate={navigateToPage}
               />
             )}
@@ -366,6 +685,7 @@ function App() {
               <ServicesPage
                 content={content}
                 activeImages={activeImages}
+                language={language}
                 onNavigate={navigateToPage}
                 openService={openService}
                 setOpenService={setOpenService}
@@ -376,6 +696,7 @@ function App() {
                 content={content}
                 activeImages={activeImages}
                 patientsImageStyle={patientsImageStyle}
+                language={language}
                 onNavigate={navigateToPage}
               />
             )}
@@ -391,19 +712,20 @@ function App() {
               <ContactPage
                 content={content}
                 activeImages={activeImages}
+                language={language}
                 onNavigate={navigateToPage}
               />
             )}
           </motion.main>
         </AnimatePresence>
-        <Footer content={content} onNavigate={navigateToPage} />
+        <Footer content={content} language={language} onNavigate={navigateToPage} />
         <AnimatePresence>
           {menuOpen && (
             <MobileMenu
               onClose={() => setMenuOpen(false)}
               returnFocusRef={menuButtonRef}
               language={language}
-              setLanguage={setLanguage}
+              setLanguage={changeLanguage}
               content={content}
               activePage={page}
               onNavigate={navigateToPage}
@@ -420,12 +742,14 @@ function HomePage({
   activeImages,
   heroImageStyle,
   patientsImageStyle,
+  language,
   onNavigate,
 }: {
   content: SiteContent;
   activeImages: typeof clinicalIntelligenceImages;
   heroImageStyle: MotionImageStyle;
   patientsImageStyle: CSSProperties;
+  language: Language;
   onNavigate: PageNavigateHandler;
 }) {
   return (
@@ -447,7 +771,7 @@ function HomePage({
               variants={{
                 hidden: {},
                 show: {
-                  transition: { staggerChildren: 0.11, delayChildren: 0.08 },
+                  transition: { staggerChildren: 0.09, delayChildren: 0.05 },
                 },
               }}
             >
@@ -458,7 +782,7 @@ function HomePage({
                 </motion.p>
                 <motion.div className="hero__actions" variants={heroFadeUp}>
                   <MagneticButton
-                    href={getPagePath("contact")}
+                    href={getPagePath("contact", language)}
                     variant="button--primary"
                     onClick={(event) => onNavigate("contact", event)}
                   >
@@ -466,7 +790,7 @@ function HomePage({
                     <ArrowRight size={18} aria-hidden="true" />
                   </MagneticButton>
                   <MagneticButton
-                    href={getPagePath("patients")}
+                    href={getPagePath("patients", language)}
                     variant="button--ghost"
                     onClick={(event) => onNavigate("patients", event)}
                   >
@@ -477,6 +801,8 @@ function HomePage({
               <StudyOpsPanel content={content} />
             </motion.div>
           </section>
+
+          <CredibilityStrip content={content.credibility} />
 
           <section className="intro section" id="company">
             <motion.div
@@ -517,7 +843,11 @@ function HomePage({
 	            </motion.div>
 	          </section>
 
-          <RouteGatewaySection content={content} onNavigate={onNavigate} />
+          <RouteGatewaySection
+            content={content}
+            language={language}
+            onNavigate={onNavigate}
+          />
 
 	          <section className="proof section" id="positioning">
             <motion.div
@@ -593,7 +923,7 @@ function HomePage({
               <p>{content.patients.copy}</p>
             </div>
             <MagneticButton
-              href={getPagePath("patients")}
+              href={getPagePath("patients", language)}
               variant="button--light"
               onClick={(event) => onNavigate("patients", event)}
             >
@@ -604,11 +934,98 @@ function HomePage({
   );
 }
 
+function CredibilityStrip({
+  content,
+}: {
+  content: SiteContent["credibility"];
+}) {
+  const sponsorSlots =
+    content.sponsors.length > 0
+      ? content.sponsors
+      : Array.from({ length: 5 }, (_, index) => ({
+          src: "",
+          name: `Logo ${index + 1}`,
+        }));
+
+  return (
+    <motion.section
+      className="credibility section"
+      aria-label={content.aria}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.25 }}
+      variants={revealStagger}
+    >
+      <div className="credibility__inner">
+        <motion.p className="credibility__intro" variants={revealUp}>
+          {content.intro}
+        </motion.p>
+
+        <motion.dl className="credibility__stats" variants={revealStagger}>
+          {content.stats.map((stat) => (
+            <motion.div
+              className="credibility__stat"
+              key={stat.label}
+              variants={revealUp}
+            >
+              <dt>{stat.value}</dt>
+              <dd>
+                <strong>{stat.label}</strong>
+                <span>{stat.note}</span>
+              </dd>
+            </motion.div>
+          ))}
+        </motion.dl>
+
+        <motion.div className="credibility__meta" variants={revealUp}>
+          <div className="credibility__compliance">
+            <h3>{content.complianceLabel}</h3>
+            <ul>
+              {content.compliance.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="credibility__sponsors">
+            <h3>{content.sponsorsLabel}</h3>
+            <ul aria-label={content.sponsorsLabel}>
+              {sponsorSlots.map((sponsor, index) =>
+                sponsor.src ? (
+                  <li key={sponsor.name}>
+                    <img
+                      src={assetPath(sponsor.src)}
+                      alt={sponsor.name}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  </li>
+                ) : (
+                  <li
+                    key={`placeholder-${index}`}
+                    className="is-placeholder"
+                    aria-hidden="true"
+                  >
+                    Logo
+                  </li>
+                ),
+              )}
+            </ul>
+            <small>{content.sponsorsNote}</small>
+          </div>
+        </motion.div>
+      </div>
+    </motion.section>
+  );
+}
+
 function RouteGatewaySection({
   content,
+  language,
   onNavigate,
 }: {
   content: SiteContent;
+  language: Language;
   onNavigate: PageNavigateHandler;
 }) {
   const routePages: PageKey[] = ["services", "patients", "insights", "contact"];
@@ -642,6 +1059,9 @@ function RouteGatewaySection({
       >
         {routePages.map((route, index) => {
           const pageContent = content.pages[route];
+          const routeLabel =
+            content.navItems.find((item) => item.page === route)?.label ??
+            content.homeHub.cta;
 
           return (
             <motion.article
@@ -656,10 +1076,11 @@ function RouteGatewaySection({
               <p>{pageContent.copy}</p>
               <a
                 className="route-card__link"
-                href={getPagePath(route)}
+                href={getPagePath(route, language)}
+                aria-label={`${routeLabel} — ${pageContent.heading}`}
                 onClick={(event) => onNavigate(route, event)}
               >
-                {content.homeHub.cta}
+                {routeLabel}
                 <ArrowRight size={17} aria-hidden="true" />
               </a>
             </motion.article>
@@ -673,12 +1094,14 @@ function RouteGatewaySection({
 function ServicesPage({
   content,
   activeImages,
+  language,
   onNavigate,
   openService,
   setOpenService,
 }: {
   content: SiteContent;
   activeImages: typeof clinicalIntelligenceImages;
+  language: Language;
   onNavigate: PageNavigateHandler;
   openService: number;
   setOpenService: Dispatch<SetStateAction<number>>;
@@ -692,13 +1115,13 @@ function ServicesPage({
         actions={[
           {
             label: content.pages.services.primaryCta,
-            href: getPagePath("contact"),
+            href: getPagePath("contact", language),
             variant: "button--primary",
             onClick: (event) => onNavigate("contact", event),
           },
           {
             label: content.pages.services.secondaryCta,
-            href: getPagePath("patients"),
+            href: getPagePath("patients", language),
             variant: "button--ghost",
             onClick: (event) => onNavigate("patients", event),
           },
@@ -866,6 +1289,7 @@ function ServicesContent({
           </div>
         </motion.div>
       </section>
+      <OperationsEvidenceSection content={content.operationsEvidence} />
     </>
   );
 }
@@ -873,11 +1297,13 @@ function ServicesContent({
 function PatientsPage({
   content,
   activeImages,
+  language,
   onNavigate,
 }: {
   content: SiteContent;
   activeImages: typeof clinicalIntelligenceImages;
   patientsImageStyle: CSSProperties;
+  language: Language;
   onNavigate: PageNavigateHandler;
 }) {
   return (
@@ -894,7 +1320,7 @@ function PatientsPage({
           },
           {
             label: content.pages.patients.secondaryCta,
-            href: getPagePath("contact"),
+            href: getPagePath("contact", language),
             variant: "button--ghost",
             onClick: (event) => onNavigate("contact", event),
           },
@@ -933,7 +1359,7 @@ function InsightsPage({
           },
           {
             label: content.pages.insights.secondaryCta,
-            href: getPagePath("contact"),
+            href: getPagePath("contact", language),
             variant: "button--ghost",
             onClick: (event) => onNavigate("contact", event),
           },
@@ -947,10 +1373,12 @@ function InsightsPage({
 function ContactPage({
   content,
   activeImages,
+  language,
   onNavigate,
 }: {
   content: SiteContent;
   activeImages: typeof clinicalIntelligenceImages;
+  language: Language;
   onNavigate: PageNavigateHandler;
 }) {
   return (
@@ -968,7 +1396,7 @@ function ContactPage({
           },
           {
             label: content.pages.contact.secondaryCta,
-            href: getPagePath("services"),
+            href: getPagePath("services", language),
             variant: "button--ghost",
             onClick: (event) => onNavigate("services", event),
           },
@@ -1012,9 +1440,9 @@ function PageHero({
         src={image}
         alt=""
         aria-hidden="true"
-        initial={{ scale: 1.04, opacity: 0.86 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.72, ease: premiumEase }}
+        initial={{ scale: 1.025, opacity: 0.82, filter: "blur(5px)" }}
+        animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
+        transition={{ duration: 0.78, ease: premiumEase }}
       />
       <div className="page-hero__shade" />
       <motion.div
@@ -1067,13 +1495,35 @@ function LinkedInNewsSection({
   content: SiteContent;
   language: Language;
 }) {
+  const [activeFilter, setActiveFilter] = useState("all");
+  const activeFilterConfig = content.linkedin.filters.find(
+    (filter) => filter.id === activeFilter,
+  );
+  const visiblePosts =
+    activeFilter === "all" || !activeFilterConfig
+      ? content.linkedin.posts
+      : content.linkedin.posts.filter((item) => {
+          const haystack = [
+            item.label,
+            item.title,
+            item.copy,
+            ...item.tags,
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          return activeFilterConfig.match.some((term) =>
+            haystack.includes(term.toLowerCase()),
+          );
+        });
+  const featuredPosts = visiblePosts.slice(0, 3);
+
   return (
     <motion.section
       className="linkedin-news section"
       id="linkedin"
       initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
+      animate="show"
       variants={revealStagger}
     >
       <motion.div className="linkedin-news__intro" variants={revealUp}>
@@ -1122,12 +1572,93 @@ function LinkedInNewsSection({
       </motion.div>
 
       <motion.div
+        className="linkedin-news__filters"
+        aria-label={content.linkedin.filtersAria}
+        variants={revealUp}
+      >
+        {content.linkedin.filters.map((filter) => (
+          <button
+            key={filter.id}
+            type="button"
+            className={activeFilter === filter.id ? "is-active" : ""}
+            aria-pressed={activeFilter === filter.id}
+            onClick={() => setActiveFilter(filter.id)}
+          >
+            {filter.label}
+          </button>
+        ))}
+      </motion.div>
+
+      <motion.div
+        className="linkedin-news__featured"
+        aria-label={content.linkedin.featuredAria}
+        variants={revealStagger}
+      >
+        <div className="linkedin-news__section-label">
+          {content.linkedin.featuredLabel}
+        </div>
+        {featuredPosts.map((item, index) => {
+          const originalIndex = content.linkedin.posts.findIndex(
+            (post) => post.url === item.url,
+          );
+          const mediaIsVideo = isLinkedInVideoPost(item);
+
+          return (
+            <motion.a
+              className={`linkedin-feature ${
+                index === 0 ? "linkedin-feature--lead" : ""
+              }`}
+              key={item.url}
+              href={item.url}
+              target="_blank"
+              rel="noreferrer"
+              variants={rowReveal}
+            >
+              <span className="linkedin-feature__media" aria-hidden="true">
+                <img
+                  src={getLinkedInPostMediaSrc(originalIndex)}
+                  alt=""
+                  width="960"
+                  height="540"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span>
+                  {mediaIsVideo ? (
+                    <PlayCircle size={14} aria-hidden="true" />
+                  ) : (
+                    <ImageIcon size={14} aria-hidden="true" />
+                  )}
+                  {mediaIsVideo
+                    ? content.linkedin.videoLabel
+                    : content.linkedin.imageLabel}
+                </span>
+              </span>
+              <span className="linkedin-feature__body">
+                <span className="linkedin-feature__meta">
+                  {item.label} - {item.date}
+                </span>
+                <strong>{item.title}</strong>
+                <span>{item.copy}</span>
+              </span>
+            </motion.a>
+          );
+        })}
+      </motion.div>
+
+      <motion.div
         className="linkedin-news__archive"
         aria-label={content.linkedin.postsAria}
         variants={revealStagger}
       >
-        {content.linkedin.posts.map((item, index) => {
-          const itemNumber = String(index + 1).padStart(2, "0");
+        <div className="linkedin-news__section-label">
+          {content.linkedin.archiveLabel}
+        </div>
+        {visiblePosts.map((item) => {
+          const originalIndex = content.linkedin.posts.findIndex(
+            (post) => post.url === item.url,
+          );
+          const itemNumber = String(originalIndex + 1).padStart(2, "0");
           const mediaIsVideo = isLinkedInVideoPost(item);
 
           return (
@@ -1148,11 +1679,11 @@ function LinkedInNewsSection({
                 aria-label={`${content.linkedin.postCta}: ${item.title}`}
               >
                 <img
-                  src={getLinkedInPostMediaSrc(index)}
+                  src={getLinkedInPostMediaSrc(originalIndex)}
                   alt={item.title}
                   width="960"
                   height="540"
-                  loading="eager"
+                  loading="lazy"
                   decoding="async"
                 />
                 <span className="linkedin-news__media-label">
@@ -1308,8 +1839,8 @@ function MagneticButton({
     }
 
     const rect = event.currentTarget.getBoundingClientRect();
-    x.set((event.clientX - rect.left - rect.width / 2) * 0.12);
-    y.set((event.clientY - rect.top - rect.height / 2) * 0.18);
+    x.set((event.clientX - rect.left - rect.width / 2) * 0.045);
+    y.set((event.clientY - rect.top - rect.height / 2) * 0.065);
   }
 
   function resetMotion() {
@@ -1328,7 +1859,7 @@ function MagneticButton({
       onMouseMove={handleMouseMove}
       onMouseLeave={resetMotion}
       whileTap={shouldReduceMotion ? undefined : { scale: 0.96 }}
-      transition={{ type: "spring", stiffness: 130, damping: 18 }}
+      transition={{ type: "spring", duration: 0.32, bounce: 0 }}
     >
       {children}
     </motion.a>
@@ -1336,22 +1867,23 @@ function MagneticButton({
 }
 
 function ParallaxImage({ src, alt }: { src: string; alt: string }) {
-  const imageRef = useRef<HTMLImageElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: imageRef,
     offset: ["start end", "end start"],
   });
-  const y = useTransform(scrollYProgress, [0, 1], [-24, 24]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1.06, 1.01]);
+  const y = useTransform(scrollYProgress, [0, 1], [-14, 14]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1.035, 1.005]);
 
   return (
-    <motion.img
-      ref={imageRef}
-      src={src}
-      alt={alt}
-      style={shouldReduceMotion ? undefined : { y, scale }}
-    />
+    <div ref={imageRef} className="parallax-image">
+      <motion.img
+        src={src}
+        alt={alt}
+        style={shouldReduceMotion ? undefined : { y, scale }}
+      />
+    </div>
   );
 }
 
@@ -1379,6 +1911,54 @@ function StudyOpsPanel({ content }: { content: SiteContent }) {
         <strong>{content.studyPanel.footerValue}</strong>
       </div>
     </motion.div>
+  );
+}
+
+function OperationsEvidenceSection({
+  content,
+}: {
+  content: SiteContent["operationsEvidence"];
+}) {
+  return (
+    <motion.section
+      className="operations-evidence"
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.22 }}
+      variants={revealStagger}
+    >
+      <div className="operations-evidence__inner">
+        <motion.div
+          className="operations-evidence__heading"
+          variants={revealUp}
+        >
+          <p className="eyebrow">{content.eyebrow}</p>
+          <h2 className="text-reveal">{content.heading}</h2>
+          <p>{content.copy}</p>
+        </motion.div>
+        <motion.div
+          className="operations-evidence__items"
+          variants={revealStagger}
+        >
+          {content.items.map((item, index) => (
+            <motion.article key={item.title} variants={rowReveal}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <small>{item.label}</small>
+              <h3>{item.title}</h3>
+              <p>{item.copy}</p>
+            </motion.article>
+          ))}
+        </motion.div>
+        <motion.ul className="operations-evidence__checks" variants={revealUp}>
+          {content.checks.map((item) => (
+            <li key={item}>
+              <Check size={16} aria-hidden="true" />
+              {item}
+            </li>
+          ))}
+        </motion.ul>
+      </div>
+    </motion.section>
   );
 }
 
@@ -2061,7 +2641,7 @@ function Header({
     <header className={`site-header ${isScrolled ? "is-scrolled" : ""}`}>
       <a
         className="brand"
-        href={getPagePath("home")}
+        href={getPagePath("home", language)}
         aria-label={content.meta.homeAria}
         onClick={(event) => onNavigate("home", event)}
       >
@@ -2072,7 +2652,7 @@ function Header({
           <a
             key={item.page}
             className={activePage === item.page ? "is-active" : ""}
-            href={getPagePath(item.page)}
+            href={getPagePath(item.page, language)}
             aria-current={activePage === item.page ? "page" : undefined}
             onClick={(event) => onNavigate(item.page, event)}
           >
@@ -2080,22 +2660,67 @@ function Header({
           </a>
         ))}
       </nav>
-      <LanguageToggle
-        language={language}
-        setLanguage={setLanguage}
-        ariaLabel={content.meta.languageAria}
-      />
-      <button
-        ref={menuButtonRef}
-        className="menu-button"
-        type="button"
-        aria-label={menuOpen ? content.meta.closeMenu : content.meta.openMenu}
-        aria-expanded={menuOpen}
-        aria-controls="mobile-navigation"
-        onClick={() => setMenuOpen(!menuOpen)}
-      >
-        {menuOpen ? <X size={22} /> : <Menu size={22} />}
-      </button>
+      <div className="header-tools">
+        {whatsappUrl && (
+          <a
+            className="header-social"
+            href={whatsappUrl}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={content.meta.whatsapp}
+          >
+            <Phone size={17} aria-hidden="true" />
+          </a>
+        )}
+        <a
+          className="header-social"
+          href={linkedInUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={content.meta.linkedIn}
+        >
+          <LinkedInIcon size={17} />
+        </a>
+        <a
+          className="header-cta"
+          href={getPagePath("contact", language)}
+          onClick={(event) => onNavigate("contact", event)}
+        >
+          {content.meta.headerCta}
+          <ArrowRight size={16} aria-hidden="true" />
+        </a>
+        <LanguageToggle
+          language={language}
+          setLanguage={setLanguage}
+          ariaLabel={content.meta.languageAria}
+        />
+        <button
+          ref={menuButtonRef}
+          className="menu-button"
+          type="button"
+          aria-label={menuOpen ? content.meta.closeMenu : content.meta.openMenu}
+          aria-expanded={menuOpen}
+          aria-controls="mobile-navigation"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          <AnimatePresence initial={false} mode="popLayout">
+            <motion.span
+              key={menuOpen ? "close" : "open"}
+              className="menu-button__icon"
+              initial={{ opacity: 0, scale: 0.45, filter: "blur(4px)" }}
+              animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, scale: 0.45, filter: "blur(4px)" }}
+              transition={{ type: "spring", duration: 0.3, bounce: 0 }}
+            >
+              {menuOpen ? (
+                <X size={22} aria-hidden="true" />
+              ) : (
+                <Menu size={22} aria-hidden="true" />
+              )}
+            </motion.span>
+          </AnimatePresence>
+        </button>
+      </div>
     </header>
   );
 }
@@ -2202,13 +2827,15 @@ function MobileMenu({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
+      transition={{ duration: 0.2, ease: premiumEase }}
     >
       <motion.nav
         id="mobile-navigation"
         aria-label={content.meta.mobileNavAria}
-        initial={{ y: -16 }}
-        animate={{ y: 0 }}
-        exit={{ y: -16 }}
+        initial={{ opacity: 0, y: -10, scale: 0.985, filter: "blur(6px)" }}
+        animate={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+        exit={{ opacity: 0, y: -8, scale: 0.99, filter: "blur(3px)" }}
+        transition={{ type: "spring", duration: 0.3, bounce: 0 }}
       >
         <button
           className="mobile-menu__close"
@@ -2223,11 +2850,19 @@ function MobileMenu({
           setLanguage={setLanguage}
           ariaLabel={content.meta.languageAria}
         />
+        <a
+          className="mobile-menu__cta"
+          href={getPagePath("contact", language)}
+          onClick={(event) => onNavigate("contact", event)}
+        >
+          {content.meta.headerCta}
+          <ArrowRight size={16} aria-hidden="true" />
+        </a>
         {content.navItems.map((item) => (
           <a
             key={item.page}
             className={activePage === item.page ? "is-active" : ""}
-            href={getPagePath(item.page)}
+            href={getPagePath(item.page, language)}
             aria-current={activePage === item.page ? "page" : undefined}
             onClick={(event) => onNavigate(item.page, event)}
           >
@@ -2253,38 +2888,105 @@ function MobileMenu({
 
 function Footer({
   content,
+  language,
   onNavigate,
 }: {
   content: SiteContent;
+  language: Language;
   onNavigate: PageNavigateHandler;
 }) {
+  const footerRoutePages: PageKey[] = ["services", "patients", "insights", "contact"];
+
   return (
-    <footer className="footer">
-      <div>
-        <a
-          className="brand brand--footer"
-          href={getPagePath("home")}
-          aria-label={content.meta.homeAria}
-          onClick={(event) => onNavigate("home", event)}
-        >
-          <BrandLogo tone="footer" />
-        </a>
-        <p>{content.footer.copy}</p>
-      </div>
-      <div className="footer__contact">
-        <span>{content.footer.label}</span>
-        <div className="footer__contact-links">
-          <a href="mailto:x.verdina@theraresearch.com">
-            <Mail size={18} aria-hidden="true" />
-            x.verdina@theraresearch.com
-          </a>
-          <a href={linkedInUrl} target="_blank" rel="noreferrer">
-            <LinkedInIcon size={18} />
-            {content.meta.linkedIn}
-          </a>
+    <motion.footer
+      className="footer"
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, amount: 0.18 }}
+      variants={revealStagger}
+    >
+      <motion.div className="footer__cta" variants={revealUp}>
+        <div className="footer__cta-copy">
+          <span>{content.footer.ctaEyebrow}</span>
+          <h2>{content.footer.ctaHeading}</h2>
+          <p>{content.footer.ctaCopy}</p>
         </div>
-      </div>
-    </footer>
+        <div className="footer__actions">
+          <MagneticButton
+            href={getPagePath("contact", language)}
+            variant="button--primary"
+            onClick={(event) => onNavigate("contact", event)}
+          >
+            {content.footer.primaryCta}
+            <ArrowRight size={17} aria-hidden="true" />
+          </MagneticButton>
+          <MagneticButton
+            href={linkedInUrl}
+            variant="button--ghost"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <LinkedInIcon size={17} />
+            {content.footer.secondaryCta}
+          </MagneticButton>
+        </div>
+      </motion.div>
+
+      <motion.div className="footer__main" variants={revealStagger}>
+        <motion.div className="footer__brand-block" variants={rowReveal}>
+          <a
+            className="brand brand--footer"
+            href={getPagePath("home", language)}
+            aria-label={content.meta.homeAria}
+            onClick={(event) => onNavigate("home", event)}
+          >
+            <BrandLogo tone="footer" />
+          </a>
+          <p>{content.footer.copy}</p>
+        </motion.div>
+
+        <motion.nav
+          className="footer__nav"
+          aria-label={content.footer.routesLabel}
+          variants={rowReveal}
+        >
+          <span>{content.footer.routesLabel}</span>
+          {footerRoutePages.map((pageKey) => (
+            <a
+              key={pageKey}
+              href={getPagePath(pageKey, language)}
+              onClick={(event) => onNavigate(pageKey, event)}
+            >
+              {content.navItems.find((item) => item.page === pageKey)?.label}
+              <ArrowRight size={15} aria-hidden="true" />
+            </a>
+          ))}
+        </motion.nav>
+
+        <motion.div className="footer__contact" variants={rowReveal}>
+          <span>{content.footer.contactLabel}</span>
+          <div className="footer__contact-links">
+            <a href="mailto:x.verdina@theraresearch.com">
+              <Mail size={18} aria-hidden="true" />
+              x.verdina@theraresearch.com
+            </a>
+            <a href={linkedInUrl} target="_blank" rel="noreferrer">
+              <LinkedInIcon size={18} />
+              {content.meta.linkedIn}
+            </a>
+          </div>
+          <div className="footer__source">
+            <strong>{content.footer.sourceLabel}</strong>
+            <p>{content.footer.sourceCopy}</p>
+          </div>
+        </motion.div>
+      </motion.div>
+
+      <motion.div className="footer__bottom" variants={revealUp}>
+        <span>{content.footer.legal}</span>
+        <span>{content.footer.label}</span>
+      </motion.div>
+    </motion.footer>
   );
 }
 

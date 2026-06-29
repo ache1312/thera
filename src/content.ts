@@ -33,6 +33,8 @@ export const siteContent = {
       languageAria: "Select language",
       emailMenu: "Contact by email",
       linkedIn: "LinkedIn",
+      headerCta: "Talk to a specialist",
+      whatsapp: "WhatsApp",
     },
     navItems: [
       { label: "Company", page: "home" },
@@ -82,6 +84,30 @@ export const siteContent = {
       heading: "A clearer structure for every clinical research moment.",
       copy: "Move directly into services, patient recruitment, current activity, or sponsor contact without searching through a single long page.",
       cta: "Open page",
+    },
+    credibility: {
+      aria: "Thera Research operating record",
+      intro: "Local ownership, measured against the work.",
+      // PLACEHOLDER VALUES — replace each `value` with a figure Thera can defend publicly.
+      stats: [
+        { value: "[NN]+", label: "Studies coordinated", note: "Phases II–IV" },
+        { value: "[NN]", label: "Sites activated in Chile", note: "Public and private" },
+        { value: "[NN]", label: "Years operating locally", note: "Founded [YYYY]" },
+        { value: "[NN]%", label: "On-time recruitment", note: "Last [NN] studies" },
+      ],
+      complianceLabel: "Standards & compliance",
+      // PLACEHOLDER — keep only the credentials Thera can evidence on request.
+      compliance: [
+        "ICH-GCP",
+        "ISP Chile authorization",
+        "Accredited ethics committees",
+        "ISO 9001 [if applicable]",
+      ],
+      sponsorsLabel: "Sponsors & partners",
+      sponsorsNote: "Shown with sponsor permission.",
+      // PLACEHOLDER — drop logo files in /public/assets/sponsors and list them here
+      // as { src: "assets/sponsors/acme.svg", name: "Acme Pharma" }. Empty = placeholder slots.
+      sponsors: [] as { src: string; name: string }[],
     },
     hero: {
       aria: "Thera Research",
@@ -217,6 +243,36 @@ export const siteContent = {
         "Resolve data queries requested by clients",
       ],
     },
+    operationsEvidence: {
+      eyebrow: "Operational evidence",
+      heading: "The study route is managed as a controlled operating system.",
+      copy: "For sponsors, the value is not only task completion. It is the continuity between feasibility, regulatory startup, site behavior, monitoring, recruitment signal, and close-out evidence.",
+      items: [
+        {
+          label: "Startup control",
+          title: "Feasibility before commitments",
+          copy: "Country and site options are reviewed against the therapeutic area, investigator dynamics, enrollment potential, and sponsor timeline.",
+        },
+        {
+          label: "Regulatory line",
+          title: "Submission and activation path",
+          copy: "Local submissions, site contracts, clinical startup, and IMP import coordination remain connected to the study execution plan.",
+        },
+        {
+          label: "Site intelligence",
+          title: "Enrollment and monitoring signal",
+          copy: "CRA oversight, participant demographics, site dynamics, and data queries are treated as operating signals, not isolated tasks.",
+        },
+      ],
+      checks: [
+        "Strategic feasibility",
+        "Site qualification",
+        "Regulatory startup",
+        "CRA monitoring",
+        "Recruitment follow-up",
+        "Close-out reporting",
+      ],
+    },
     proof: {
       eyebrow: "Positioning",
       heading: "The CRO that takes responsibility.",
@@ -261,7 +317,67 @@ export const siteContent = {
       followCopy:
         "LinkedIn limits the full historical feed without sign-in. This page captures the public updates visible at the last review and keeps every item linked to its original post.",
       followFallback: "Follow Thera Research",
+      filtersAria: "Filter LinkedIn updates",
+      filters: [
+        { id: "all", label: "All", match: [] },
+        {
+          id: "operations",
+          label: "Operations",
+          match: [
+            "clinical operations",
+            "protocol",
+            "GCP",
+            "CRA",
+            "feasibility",
+            "site",
+            "regulatory",
+            "data",
+            "AI",
+          ],
+        },
+        {
+          id: "science",
+          label: "Science",
+          match: [
+            "science",
+            "basic research",
+            "innovation",
+            "immunology",
+            "neuroscience",
+            "TRIMELVax",
+            "biotechnology",
+          ],
+        },
+        {
+          id: "patients",
+          label: "Patients",
+          match: [
+            "patient",
+            "participant",
+            "cancer",
+            "depression",
+            "vaccines",
+            "prevention",
+          ],
+        },
+        {
+          id: "company",
+          label: "Company",
+          match: [
+            "company",
+            "Thera Research",
+            "partnership",
+            "careers",
+            "summit",
+            "workshop",
+            "ACROCHI",
+          ],
+        },
+      ],
       visitPage: "Open LinkedIn page",
+      featuredAria: "Featured LinkedIn updates",
+      featuredLabel: "Featured updates",
+      archiveLabel: "Full LinkedIn archive",
       postsAria: "LinkedIn post archive",
       sourceLabel: "Source",
       sourceValue: "Official LinkedIn public feed",
@@ -696,6 +812,17 @@ export const siteContent = {
     footer: {
       copy: "Clinical Research Organization supporting planning, execution, reporting, monitoring, regulatory coordination, and patient recruitment.",
       label: "Clinical research organization",
+      ctaEyebrow: "Local clinical execution",
+      ctaHeading: "Plan the next study route with Thera Research.",
+      ctaCopy:
+        "Start with the study context, recruitment needs, sites, or timeline that need local ownership in Chile.",
+      primaryCta: "Start a study",
+      secondaryCta: "Follow activity",
+      routesLabel: "Site sections",
+      contactLabel: "Direct contact",
+      sourceLabel: "Current activity",
+      sourceCopy: "LinkedIn updates, company news, and clinical research notes.",
+      legal: "Thera Research Ltda. Clinical research operations in Chile.",
     },
   },
   es: {
@@ -709,6 +836,8 @@ export const siteContent = {
       languageAria: "Seleccionar idioma",
       emailMenu: "Contactar por correo",
       linkedIn: "LinkedIn",
+      headerCta: "Hablar con un especialista",
+      whatsapp: "WhatsApp",
     },
     navItems: [
       { label: "Empresa", page: "home" },
@@ -758,6 +887,30 @@ export const siteContent = {
       heading: "Una estructura más clara para cada momento de investigación clínica.",
       copy: "Avance directo a servicios, reclutamiento de pacientes, actividad reciente o contacto con patrocinadores sin recorrer una sola página larga.",
       cta: "Abrir página",
+    },
+    credibility: {
+      aria: "Trayectoria operativa de Thera Research",
+      intro: "Responsabilidad local, medida contra el trabajo.",
+      // VALORES PLACEHOLDER — reemplaza cada `value` por una cifra que Thera pueda sostener públicamente.
+      stats: [
+        { value: "[NN]+", label: "Estudios coordinados", note: "Fases II–IV" },
+        { value: "[NN]", label: "Centros activados en Chile", note: "Públicos y privados" },
+        { value: "[NN]", label: "Años de operación local", note: "Desde [AAAA]" },
+        { value: "[NN]%", label: "Reclutamiento a tiempo", note: "Últimos [NN] estudios" },
+      ],
+      complianceLabel: "Estándares y cumplimiento",
+      // PLACEHOLDER — deja solo las credenciales que Thera pueda evidenciar a solicitud.
+      compliance: [
+        "ICH-GCP",
+        "Autorización ISP Chile",
+        "Comités de ética acreditados",
+        "ISO 9001 [si aplica]",
+      ],
+      sponsorsLabel: "Patrocinadores y aliados",
+      sponsorsNote: "Mostrados con autorización del patrocinador.",
+      // PLACEHOLDER — coloca los logos en /public/assets/sponsors y lístalos aquí
+      // como { src: "assets/sponsors/acme.svg", name: "Acme Pharma" }. Vacío = ranuras placeholder.
+      sponsors: [] as { src: string; name: string }[],
     },
     hero: {
       aria: "Thera Research",
@@ -899,6 +1052,36 @@ export const siteContent = {
         "Resolución de consultas de datos solicitadas por clientes",
       ],
     },
+    operationsEvidence: {
+      eyebrow: "Evidencia operativa",
+      heading: "La ruta del estudio se gestiona como un sistema operativo controlado.",
+      copy: "Para patrocinadores, el valor no es solo completar tareas. Es mantener continuidad entre factibilidad, puesta en marcha regulatoria, comportamiento de centros, monitoreo, señal de reclutamiento y evidencia de cierre.",
+      items: [
+        {
+          label: "Control de startup",
+          title: "Factibilidad antes de compromisos",
+          copy: "Las opciones de país y centros se revisan según área terapéutica, dinámica de investigadores, potencial de enrolamiento y plazos del patrocinador.",
+        },
+        {
+          label: "Línea regulatoria",
+          title: "Ruta de presentación y activación",
+          copy: "Presentaciones locales, contratos con centros, puesta en marcha clínica y coordinación de importación se conectan al plan de ejecución.",
+        },
+        {
+          label: "Inteligencia de centros",
+          title: "Señal de enrolamiento y monitoreo",
+          copy: "La supervisión CRA, demografía de participantes, dinámica de centros y queries se tratan como señales operativas, no como tareas aisladas.",
+        },
+      ],
+      checks: [
+        "Factibilidad estratégica",
+        "Calificación de centros",
+        "Startup regulatorio",
+        "Monitoreo CRA",
+        "Seguimiento de reclutamiento",
+        "Informes de cierre",
+      ],
+    },
     proof: {
       eyebrow: "Posicionamiento",
       heading: "La CRO que toma responsabilidad.",
@@ -943,7 +1126,67 @@ export const siteContent = {
       followCopy:
         "LinkedIn limita el histórico completo sin inicio de sesión. Esta página captura las actualizaciones públicas visibles en la última revisión y mantiene cada ítem enlazado a su publicación original.",
       followFallback: "Seguir a Thera Research",
+      filtersAria: "Filtrar actualizaciones de LinkedIn",
+      filters: [
+        { id: "all", label: "Todo", match: [] },
+        {
+          id: "operations",
+          label: "Operación",
+          match: [
+            "operación",
+            "protocolo",
+            "BPC",
+            "CRA",
+            "factibilidad",
+            "centro",
+            "regulatoria",
+            "datos",
+            "IA",
+          ],
+        },
+        {
+          id: "science",
+          label: "Ciencia",
+          match: [
+            "ciencia",
+            "ciencia básica",
+            "innovación",
+            "inmunología",
+            "neurociencia",
+            "TRIMELVax",
+            "biotecnología",
+          ],
+        },
+        {
+          id: "patients",
+          label: "Pacientes",
+          match: [
+            "paciente",
+            "participante",
+            "cáncer",
+            "depresión",
+            "vacunas",
+            "prevención",
+          ],
+        },
+        {
+          id: "company",
+          label: "Empresa",
+          match: [
+            "empresa",
+            "Thera Research",
+            "alianzas",
+            "oferta",
+            "summit",
+            "workshop",
+            "ACROCHI",
+          ],
+        },
+      ],
       visitPage: "Abrir página de LinkedIn",
+      featuredAria: "Actualizaciones destacadas de LinkedIn",
+      featuredLabel: "Actualizaciones destacadas",
+      archiveLabel: "Archivo completo de LinkedIn",
       postsAria: "Archivo de publicaciones de LinkedIn",
       sourceLabel: "Fuente",
       sourceValue: "Feed público oficial de LinkedIn",
@@ -1383,6 +1626,18 @@ export const siteContent = {
     footer: {
       copy: "Organización de investigación clínica que apoya planificación, ejecución, informes, monitoreo, coordinación regulatoria y reclutamiento de pacientes.",
       label: "Organización de investigación clínica",
+      ctaEyebrow: "Ejecución clínica local",
+      ctaHeading: "Planifique la próxima ruta de estudio con Thera Research.",
+      ctaCopy:
+        "Comience con el contexto del estudio, necesidades de reclutamiento, centros o plazos que requieren responsabilidad local en Chile.",
+      primaryCta: "Iniciar un estudio",
+      secondaryCta: "Ver actividad",
+      routesLabel: "Secciones del sitio",
+      contactLabel: "Contacto directo",
+      sourceLabel: "Actividad reciente",
+      sourceCopy:
+        "Actualizaciones de LinkedIn, noticias de empresa y notas de investigación clínica.",
+      legal: "Thera Research Ltda. Operación de investigación clínica en Chile.",
     },
   },
 } as const;

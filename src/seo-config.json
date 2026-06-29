@@ -1,0 +1,99 @@
+{
+  "siteUrl": "https://theraresearch.com",
+  "siteName": "Thera Research",
+  "defaultLanguage": "es",
+  "lastmod": "2026-06-29",
+  "linkedInUrl": "https://www.linkedin.com/company/theraresearch-ltda",
+  "contactEmail": "x.verdina@theraresearch.com",
+  "logo": "/assets/logos/official-site-logo-ink.png",
+  "socialImage": "/assets/thera-hero-clinical-operations.webp",
+  "routes": {
+    "es": {
+      "home": "/es/",
+      "services": "/es/servicios",
+      "patients": "/es/pacientes",
+      "insights": "/es/noticias",
+      "contact": "/es/contacto"
+    },
+    "en": {
+      "home": "/en/",
+      "services": "/en/services",
+      "patients": "/en/patients",
+      "insights": "/en/insights",
+      "contact": "/en/contact"
+    }
+  },
+  "legacyRoutes": {
+    "home": "/",
+    "services": "/services",
+    "patients": "/patients",
+    "insights": "/insights",
+    "contact": "/contact"
+  },
+  "pages": {
+    "es": {
+      "home": {
+        "title": "Thera Research | CRO e investigación clínica en Chile",
+        "description": "Thera Research es una CRO en Chile especializada en gestión de estudios clínicos, monitoreo, activación de centros, coordinación regulatoria y reclutamiento de pacientes.",
+        "ogTitle": "Thera Research | CRO en Chile",
+        "ogDescription": "Gestión de estudios clínicos, operación de centros, monitoreo, reclutamiento y coordinación regulatoria con responsabilidad local en Chile."
+      },
+      "services": {
+        "title": "Servicios CRO en Chile | Monitoreo, activación y operación clínica",
+        "description": "Servicios de Thera Research para estudios clínicos: identificación de centros, factibilidad estratégica, activación, monitoreo CRA, coordinación regulatoria y cierre.",
+        "ogTitle": "Servicios CRO de Thera Research",
+        "ogDescription": "Soporte operacional para estudios clínicos desde factibilidad y startup hasta monitoreo, reclutamiento y cierre."
+      },
+      "patients": {
+        "title": "Reclutamiento de pacientes para estudios clínicos | Thera Research",
+        "description": "Información y registro para pacientes interesados en participar en estudios clínicos coordinados por Thera Research en Chile.",
+        "ogTitle": "Reclutamiento de pacientes | Thera Research",
+        "ogDescription": "Una ruta clara para pacientes interesados en estudios clínicos, con registro y orientación en Chile."
+      },
+      "insights": {
+        "title": "Noticias de investigación clínica y LinkedIn | Thera Research",
+        "description": "Actualizaciones oficiales de Thera Research desde LinkedIn: investigación clínica, operación de estudios, reclutamiento, ciencia y actividad de empresa.",
+        "ogTitle": "Noticias y actividad de Thera Research",
+        "ogDescription": "Archivo de publicaciones oficiales con imágenes, resúmenes y enlaces directos a LinkedIn."
+      },
+      "contact": {
+        "title": "Contacto para estudios clínicos en Chile | Thera Research",
+        "description": "Contacte a Thera Research para conversar estudios clínicos, operación local, activación de centros, monitoreo, reclutamiento y soporte regulatorio en Chile.",
+        "ogTitle": "Contacto | Thera Research",
+        "ogDescription": "Conecte con el equipo de Thera Research para planificar ejecución local de estudios clínicos en Chile."
+      }
+    },
+    "en": {
+      "home": {
+        "title": "Thera Research | Clinical Research Organization in Chile",
+        "description": "Thera Research is a Chile-based CRO supporting clinical trial management, monitoring, site activation, regulatory coordination, and patient recruitment.",
+        "ogTitle": "Thera Research | CRO in Chile",
+        "ogDescription": "Clinical trial operations, site coordination, monitoring, recruitment, and regulatory support with local ownership in Chile."
+      },
+      "services": {
+        "title": "CRO Services in Chile | Monitoring, Startup and Clinical Operations",
+        "description": "Thera Research supports clinical studies with site identification, strategic feasibility, site activation, CRA monitoring, regulatory coordination, and close-out.",
+        "ogTitle": "Thera Research CRO Services",
+        "ogDescription": "Operational support for clinical studies from feasibility and startup through monitoring, recruitment, and close-out."
+      },
+      "patients": {
+        "title": "Patient Recruitment for Clinical Trials | Thera Research",
+        "description": "Information and registration for patients interested in clinical studies coordinated by Thera Research in Chile.",
+        "ogTitle": "Patient Recruitment | Thera Research",
+        "ogDescription": "A clearer path for patients interested in clinical studies, with registration and orientation in Chile."
+      },
+      "insights": {
+        "title": "Clinical Research News and LinkedIn Updates | Thera Research",
+        "description": "Official Thera Research updates from LinkedIn: clinical research, study operations, recruitment, science, and company activity.",
+        "ogTitle": "Thera Research News and Activity",
+        "ogDescription": "Official post archive with images, summaries, and direct links to LinkedIn."
+      },
+      "contact": {
+        "title": "Contact Thera Research | Clinical Studies in Chile",
+        "description": "Contact Thera Research to discuss clinical studies, local operations, site activation, monitoring, recruitment, and regulatory support in Chile.",
+        "ogTitle": "Contact | Thera Research",
+        "ogDescription": "Connect with Thera Research to plan local clinical trial execution in Chile."
+      }
+    }
+  }
+}

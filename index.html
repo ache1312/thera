@@ -1,25 +1,55 @@
 <!doctype html>
-<html lang="en">
+<!-- lang defaults to es (the site opens in Spanish). App.tsx syncs <html lang> on language switch. -->
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- SEO_START -->
+    <title>Thera Research | CRO e investigación clínica en Chile</title>
     <meta
       name="description"
-      content="Thera Research is a Clinical Research Organization supporting clinical trial operations, regulatory strategy, monitoring, site activation, patient recruitment, and patient registration."
+      content="Thera Research es una CRO en Chile especializada en gestión de estudios clínicos, monitoreo, activación de centros, coordinación regulatoria y reclutamiento de pacientes."
     />
+    <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#071d24" />
-    <meta
-      property="og:title"
-      content="Thera Research | Clinical Research Organization"
-    />
+    <link rel="canonical" href="https://theraresearch.com/es/" />
+    <link rel="alternate" href="https://theraresearch.com/es/" hreflang="es" data-seo-alternate="true" />
+    <link rel="alternate" href="https://theraresearch.com/en/" hreflang="en" data-seo-alternate="true" />
+    <link rel="alternate" href="https://theraresearch.com/" hreflang="x-default" data-seo-alternate="true" />
+    <meta property="og:site_name" content="Thera Research" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:url" content="https://theraresearch.com/es/" />
+    <meta property="og:title" content="Thera Research | CRO en Chile" />
     <meta
       property="og:description"
-      content="Clinical trial management, regulatory execution, site partnerships, and patient recruitment for pharmaceutical, biotech, and medical device sponsors."
+      content="Gestión de estudios clínicos, operación de centros, monitoreo, reclutamiento y coordinación regulatoria con responsabilidad local en Chile."
     />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="/assets/clinical-cells.jpg" />
+    <meta
+      property="og:image"
+      content="https://theraresearch.com/assets/thera-hero-clinical-operations.webp"
+    />
+    <meta
+      property="og:image:alt"
+      content="Thera Research clinical research operations"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Thera Research | CRO en Chile" />
+    <meta
+      name="twitter:description"
+      content="Gestión de estudios clínicos, operación de centros, monitoreo, reclutamiento y coordinación regulatoria con responsabilidad local en Chile."
+    />
+    <meta
+      name="twitter:image"
+      content="https://theraresearch.com/assets/thera-hero-clinical-operations.webp"
+    />
+    <script id="thera-structured-data" type="application/ld+json">
+      {"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://theraresearch.com/#organization","name":"Thera Research","legalName":"Thera Research Ltda.","url":"https://theraresearch.com","logo":"https://theraresearch.com/assets/logos/official-site-logo-ink.png","description":"Clinical Research Organization supporting clinical trial operations, monitoring, site activation, regulatory coordination, and patient recruitment in Chile.","email":"x.verdina@theraresearch.com","areaServed":{"@type":"Country","name":"Chile"},"knowsAbout":["Clinical trial management","Clinical monitoring","Patient recruitment","Site activation","Regulatory coordination","Clinical research operations"],"sameAs":["https://www.linkedin.com/company/theraresearch-ltda"]},{"@type":"WebSite","@id":"https://theraresearch.com/#website","url":"https://theraresearch.com","name":"Thera Research","inLanguage":"es","publisher":{"@id":"https://theraresearch.com/#organization"}},{"@type":"WebPage","@id":"https://theraresearch.com/es/#webpage","url":"https://theraresearch.com/es/","name":"Thera Research | CRO e investigación clínica en Chile","description":"Thera Research es una CRO en Chile especializada en gestión de estudios clínicos, monitoreo, activación de centros, coordinación regulatoria y reclutamiento de pacientes.","inLanguage":"es","isPartOf":{"@id":"https://theraresearch.com/#website"},"about":{"@id":"https://theraresearch.com/#organization"}}]}
+    </script>
+    <!-- SEO_END -->
+
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <title>Thera Research | Clinical Research Organization</title>
   </head>
   <body>
     <div id="root"></div>
